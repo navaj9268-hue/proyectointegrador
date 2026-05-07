@@ -138,6 +138,15 @@
             </div>
 
             <div class="mb-3">
+              <label class="form-label fw-bold">Número de documento</label>
+              <input type="text" name="numero_documento" class="form-control @error('numero_documento') is-invalid @enderror" 
+                     value="{{ old('numero_documento') }}" required>
+              @error('numero_documento')
+                <div class="invalid-feedback">{{ $message }}</div>
+              @enderror
+            </div>
+
+            <div class="mb-3">
               <label class="form-label fw-bold">Fecha de entrada</label>
               <input type="date" name="fecha_entrada" class="form-control @error('fecha_entrada') is-invalid @enderror" 
                      value="{{ old('fecha_entrada') }}" required min="{{ now()->format('Y-m-d') }}">
