@@ -21,6 +21,6 @@ class HomeController extends Controller
             ]);
         }
 
-        return view('home.index', compact('hotel'));
+        return view('inicio.index', compact('hotel'));
     }
 }

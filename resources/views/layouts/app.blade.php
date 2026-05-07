@@ -116,7 +116,7 @@
     <div class="d-flex align-items-center gap-3">
       <button id="btnToggleSidebar" class="btn btn-light d-lg-none" title="Abrir menú">☰</button>
 
-      <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
+      <a class="navbar-brand d-flex align-items-center" href="{{ route('inicio') }}">
         <span style="font-size:1.2rem; margin-right:.45rem;">🏨</span>
         <span>Hotel <small style="opacity:.85; font-weight:600;">Muñozo</small></span>
       </a>
@@ -130,8 +130,8 @@
 
         {{-- quick top links: calendario y pagos --}}
         <div class="top-quick d-none d-md-block">
-          <a href="{{ route('reservations.calendar') }}" class="btn btn-sm btn-light" title="Calendario">📆 Calendario</a>
-          <a href="{{ route('payments.index') }}" class="btn btn-sm btn-light" title="Pagos">💳 Pagos</a>
+          <a href="{{ route('reservaciones.calendar') }}" class="btn btn-sm btn-light" title="Calendario">📆 Calendario</a>
+          <a href="{{ route('pagos.index') }}" class="btn btn-sm btn-light" title="Pagos">💳 Pagos</a>
         </div>
 
         @auth
@@ -143,7 +143,7 @@
               <span style="margin-right:6px;">👤</span><small>Cuenta</small>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="{{ route('users.edit', auth()->user()) }}">Perfil</a></li>
+              <li><a class="dropdown-item" href="{{ route('usuarios.edit', auth()->user()) }}">Perfil</a></li>
               <li><hr class="dropdown-divider"></li>
               <li>
                 <form method="POST" action="{{ route('logout') }}">
@@ -184,37 +184,49 @@
     </div>
 
     <nav class="nav flex-column">
-      <a class="nav-link @if(request()->routeIs('home')) active @endif" href="{{ route('home') }}">
+      <a class="nav-link @if(request()->routeIs('inicio')) active @endif" href="{{ route('inicio') }}">
         <span class="emoji">🏠</span> Inicio
       </a>
 
-      <a class="nav-link mt-2 @if(request()->is('rooms*')) active @endif" href="{{ route('rooms.index') }}">
+      <a class="nav-link mt-2 @if(request()->is('habitaciones*')) active @endif" href="{{ route('habitaciones.index') }}">
         <span class="emoji">🛏️</span> Habitaciones
       </a>
 
-      <a class="nav-link mt-2 @if(request()->is('inventories*')) active @endif" href="{{ route('inventories.index') }}">
+      <a class="nav-link mt-2 @if(request()->is('inventarios*')) active @endif" href="{{ route('inventarios.index') }}">
         <span class="emoji">📦</span> Inventario
       </a>
 
-      <a class="nav-link mt-2 @if(request()->is('users*')) active @endif" href="{{ route('users.index') }}">
+      <a class="nav-link mt-2 @if(request()->is('catalogo*')) active @endif" href="{{ route('catalogo.index') }}">
+        <span class="emoji">🛍️</span> Catálogo
+      </a>
+
+      <a class="nav-link mt-2 @if(request()->is('usuarios*')) active @endif" href="{{ route('usuarios.index') }}">
         <span class="emoji">👥</span> Usuarios
       </a>
 
       {{-- Nuevos enlaces añadidos: Calendario y Pagos --}}
-      <a class="nav-link mt-3 @if(request()->is('reservations*') || request()->routeIs('reservations.calendar')) active @endif" href="{{ route('reservations.calendar') }}">
+      <a class="nav-link mt-3 @if(request()->is('reservaciones*') || request()->routeIs('reservaciones.calendar')) active @endif" href="{{ route('reservaciones.calendar') }}">
         <span class="emoji">📆</span> Calendario
       </a>
 
-      <a class="nav-link mt-2 @if(request()->is('payments*')) active @endif" href="{{ route('payments.index') }}">
+      <a class="nav-link mt-2 @if(request()->routeIs('reservaciones.management')) active @endif" href="{{ route('reservaciones.management') }}">
+        <span class="emoji">📋</span> Gestión
+      </a>
+
+      <a class="nav-link mt-2 @if(request()->is('pagos*')) active @endif" href="{{ route('pagos.index') }}">
         <span class="emoji">💳</span> Pagos
+      </a>
+
+      <a class="nav-link mt-2 @if(request()->is('vehiculos*')) active @endif" href="{{ route('vehiculos.index') }}">
+        <span class="emoji">🚗</span> Vehículos
       </a>
 
       <div class="mt-4">
         <hr>
         <small class="text-muted">Atajos</small>
         <ul class="list-unstyled mt-2">
-          <li><a class="nav-link" href="{{ route('rooms.create') }}">➕ Nueva habitación</a></li>
-          <li><a class="nav-link" href="{{ route('inventories.create') }}">➕ Nuevo inventario</a></li>
+          <li><a class="nav-link" href="{{ route('habitaciones.create') }}">➕ Nueva habitación</a></li>
+          <li><a class="nav-link" href="{{ route('inventarios.create') }}">➕ Nuevo inventario</a></li>
         </ul>
       </div>
 
