@@ -40,9 +40,9 @@
         </div>
 
         <div class="col-md-4 mb-3">
-          <label class="form-label">Hotel (opcional)</label>
-          <select name="hotel_id" class="form-select">
-            <option value="">-- Ninguno --</option>
+          <label class="form-label">Hotel</label>
+          <select name="hotel_id" class="form-select" required>
+            <option value="">-- Seleccionar --</option>
             @foreach($hotels as $h)
               <option value="{{ $h->id }}" @selected(old('hotel_id') == $h->id)>{{ $h->name }}</option>
             @endforeach

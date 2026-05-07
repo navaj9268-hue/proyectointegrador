@@ -29,7 +29,7 @@ class ControladorHabitacion extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'hotel_id' => 'nullable|exists:hoteles,id',
+            'hotel_id' => 'required|exists:hoteles,id',
             'numero' => 'required|string|max:50',
             'tipo' => 'nullable|string|max:100',
             'precio' => 'required|numeric|min:0',

@@ -123,7 +123,7 @@
               <td>
                 <div class="btn-group btn-group-sm">
                   <a href="{{ route('reservaciones.mostrar', $res->id) }}" class="btn btn-outline-primary" title="Ver detalles">👁️</a>
-                  <a href="{{ route('reservaciones.mostrar', $res->id) }}" class="btn btn-outline-warning" title="Editar">✏️</a>
+                  <a href="{{ route('reservaciones.edit', $res->id) }}" class="btn btn-outline-warning" title="Editar">✏️</a>
                   <button type="button" class="btn btn-outline-danger" title="Eliminar" 
                           onclick="if(confirm('¿Estás seguro de que deseas eliminar esta reserva?')) { document.getElementById('delete-form-{{ $res->id }}').submit(); }">🗑️</button>
                   

@@ -74,7 +74,7 @@
       <div class="card p-3 card-accent">
         <h6>Resumen</h6>
         <p class="mb-1"><strong>Estado:</strong> {{ $reservation->status ?? '—' }}</p>
-        <p class="mb-1"><strong>Creado por:</strong> {{ $reservation->user->name ?? '-' }}</p>
+        <p class="mb-1"><strong>Creado por:</strong> -</p>
         <p class="mb-1"><strong>Creado:</strong> {{ $reservation->created_at->format('d/m/Y H:i') }}</p>
       </div>
     </div>

@@ -3,6 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ReservationConfirmationMail;
+use App\Models\Habitacion;
+use App\Models\Huesped;
+use App\Models\Reservacion;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class ControladorCatalogo extends Controller

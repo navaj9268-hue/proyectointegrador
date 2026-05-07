@@ -96,6 +96,7 @@ Route::middleware('auth')->group(function () {
         // Calendario / Reservas (endpoints AJAX + vista)
         Route::get('reservaciones/calendario', [ControladorReservacion::class, 'calendar'])->name('reservaciones.calendar');
         Route::get('reservaciones/gestion', [ControladorReservacion::class, 'management'])->name('reservaciones.management');
+        Route::get('reservaciones/{reservation}/editar', [ControladorReservacion::class, 'edit'])->name('reservaciones.edit');
         Route::get('reservaciones/eventos', [ControladorReservacion::class, 'events'])->name('reservaciones.events');
         Route::post('reservaciones', [ControladorReservacion::class, 'store'])->name('reservaciones.store');
         Route::put('reservaciones/{reservation}', [ControladorReservacion::class, 'update'])->name('reservaciones.update');

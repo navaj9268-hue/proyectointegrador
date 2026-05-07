@@ -14,10 +14,11 @@ class Reservacion extends Model {
   public function room(){ return $this->belongsTo(Habitacion::class); }
   public function guest(){ return $this->belongsTo(Huesped::class); }
   public function hotel(){ return $this->belongsTo(Hotel::class); }
+  public function payments(){ return $this->hasMany(Pago::class, 'reservation_id'); }
 
   public function getCheckinAtAttribute()
   {
-      return $this->attributes['fecha_entrada'] ?? null;
+      return isset($this->attributes['fecha_entrada']) ? $this->asDateTime($this->attributes['fecha_entrada']) : null;
   }
 
   public function setCheckinAtAttribute($value)
@@ -27,7 +28,7 @@ class Reservacion extends Model {
 
   public function getCheckoutAtAttribute()
   {
-      return $this->attributes['fecha_salida'] ?? null;
+      return isset($this->attributes['fecha_salida']) ? $this->asDateTime($this->attributes['fecha_salida']) : null;
   }
 
   public function setCheckoutAtAttribute($value)

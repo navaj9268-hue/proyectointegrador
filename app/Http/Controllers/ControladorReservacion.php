@@ -144,13 +144,19 @@ class ControladorReservacion extends Controller
      */
     public function show(Reservacion $reservation)
     {
-        // Cargamos relaciones que usarás en la vista
-        $reservation->load(['room', 'guest', 'user']);
+        // Load the relations used in the view
+        $reservation->load(['room', 'guest', 'payments']);
 
         return view('reservaciones.mostrar', compact('reservation'));
     }
 
-    protected function reservationOverlaps(int $roomId, string $start, string $end, int $excludeId = null): bool
+    public function edit(Reservacion $reservation)
+    {
+        $reservation->load(['room', 'guest']);
+        return view('reservaciones.editar', compact('reservation'));
+    }
+
+    protected function reservationOverlaps(int $roomId, string $start, string $end, ?int $excludeId = null): bool
     {
         $q = Reservacion::where('room_id', $roomId)->where('status', '!=', 'cancelled');
         if ($excludeId) $q->where('id', '!=', $excludeId);
