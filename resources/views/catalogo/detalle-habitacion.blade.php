@@ -75,9 +75,9 @@
               @foreach($reservations as $res)
                 <div class="col-md-6">
                   <div class="alert alert-warning mb-0 small">
-                    <strong>{{ $res->checkin_at->format('d/m/Y') }}</strong>
+                    <strong>{{ $res->fecha_entrada->format('d/m/Y') }}</strong>
                     hasta
-                    <strong>{{ $res->checkout_at->format('d/m/Y') }}</strong>
+                    <strong>{{ $res->fecha_salida->format('d/m/Y') }}</strong>
                   </div>
                 </div>
               @endforeach
