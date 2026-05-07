@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Habitacion;
-use App\Models\Huesped;
-use App\Models\Reservacion;
-use Illuminate\Http\Request;
+use App\Mail\ReservationConfirmationMail;
+use Illuminate\Support\Facades\Mail;
 
 class ControladorCatalogo extends Controller
 {
@@ -94,7 +92,10 @@ class ControladorCatalogo extends Controller
             'status' => 'booked'
         ]);
 
+        // Enviar email de confirmación
+        Mail::to($guest->email)->send(new ReservationConfirmationMail($reservation, $guest));
+
         return redirect()->route('reservaciones.mostrar', $reservation->id)
-            ->with('success', 'Reserva creada exitosamente. Ahora puedes proceder al pago.');
+            ->with('success', 'Reserva creada exitosamente. Se ha enviado un email de confirmación.');
     }
 }
