@@ -23,7 +23,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $usuarios = Usuario::factory(150)->create();
+        // Crear un usuario administrador
+        Usuario::factory()->create([
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'role' => 'admin',
+        ]);
+
+        $usuarios = Usuario::factory(149)->create();
         $hoteles = Hotel::factory(150)->create();
         $habitaciones = Habitacion::factory()->count(150)->make()->each(function ($habitacion) use ($hoteles) {
             $habitacion->hotel_id = $hoteles->random()->id;

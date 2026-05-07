@@ -33,9 +33,11 @@ class ControladorHabitacion extends Controller
             'numero' => 'required|string|max:50',
             'tipo' => 'nullable|string|max:100',
             'precio' => 'required|numeric|min:0',
-            'status' => 'required|in:available,occupied,maintenance',
+            'status' => 'nullable|in:available,occupied,maintenance',
             'notas' => 'nullable|string',
         ]);
+
+        $data['status'] = $data['status'] ?? 'available';
 
         Habitacion::create($data);
 

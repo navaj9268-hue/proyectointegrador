@@ -40,64 +40,68 @@ Route::middleware('auth')->group(function () {
     Route::get('inicio', [HomeController::class,'index'])->name('inicio');
 
     // Catálogo de habitaciones para clientes
-    Route::get('catalogo/habitaciones', [ControladorCatalogo::class, 'index'])->name('catalogo.index');
-    Route::get('catalogo/habitaciones/{room}', [ControladorCatalogo::class, 'show'])->name('catalogo.mostrar');
-    Route::post('catalogo/reservaciones', [ControladorCatalogo::class, 'storeReservation'])->name('catalogo.reservaciones.store');
-
-    // Recursos principales
-    Route::resource('habitaciones', ControladorHabitacion::class)->parameters(['habitaciones' => 'room'])->names([
-        'index' => 'habitaciones.index',
-        'create' => 'habitaciones.create',
-        'store' => 'habitaciones.store',
-        'show' => 'habitaciones.show',
-        'edit' => 'habitaciones.edit',
-        'update' => 'habitaciones.update',
-        'destroy' => 'habitaciones.destroy',
-    ]);
-    Route::resource('inventarios', ControladorInventario::class)->parameters(['inventarios' => 'inventory'])->except(['show'])->names([
-        'index' => 'inventarios.index',
-        'create' => 'inventarios.create',
-        'store' => 'inventarios.store',
-        'edit' => 'inventarios.edit',
-        'update' => 'inventarios.update',
-        'destroy' => 'inventarios.destroy',
-    ]);
-    Route::resource('usuarios', ControladorUsuario::class)->parameters(['usuarios' => 'user'])->except(['show'])->names([
-        'index' => 'usuarios.index',
-        'create' => 'usuarios.create',
-        'store' => 'usuarios.store',
-        'edit' => 'usuarios.edit',
-        'update' => 'usuarios.update',
-        'destroy' => 'usuarios.destroy',
-    ]);
-    Route::resource('vehiculos', ControladorVehiculo::class)->parameters(['vehiculos' => 'vehicle'])->names([
-        'index' => 'vehiculos.index',
-        'create' => 'vehiculos.create',
-        'store' => 'vehiculos.store',
-        'show' => 'vehiculos.show',
-        'edit' => 'vehiculos.edit',
-        'update' => 'vehiculos.update',
-        'destroy' => 'vehiculos.destroy',
-    ]);
-    Route::put('vehiculos/{vehicle}/registrar-salida', [ControladorVehiculo::class, 'registerExit'])->name('vehiculos.registrar-salida');
-
-    // Reportes PDF
-    Route::prefix('reportes')->name('reportes.')->group(function () {
-        Route::get('habitaciones', [ControladorReporte::class,'roomsPdf'])->name('habitaciones');
-        Route::get('inventarios', [ControladorReporte::class,'inventoriesPdf'])->name('inventarios');
-        Route::get('usuarios', [ControladorReporte::class,'usersPdf'])->name('usuarios');
-        Route::get('general', [ControladorReporte::class,'generalPdf'])->name('general');
+    Route::middleware('role:cliente')->group(function () {
+        Route::get('catalogo/habitaciones', [ControladorCatalogo::class, 'index'])->name('catalogo.index');
+        Route::get('catalogo/habitaciones/{room}', [ControladorCatalogo::class, 'show'])->name('catalogo.mostrar');
+        Route::post('catalogo/reservaciones', [ControladorCatalogo::class, 'storeReservation'])->name('catalogo.reservaciones.store');
     });
 
-    // Calendario / Reservas (endpoints AJAX + vista)
-    Route::get('reservaciones/calendario', [ControladorReservacion::class, 'calendar'])->name('reservaciones.calendar');
-    Route::get('reservaciones/gestion', [ControladorReservacion::class, 'management'])->name('reservaciones.management');
-    Route::get('reservaciones/eventos', [ControladorReservacion::class, 'events'])->name('reservaciones.events');
-    Route::post('reservaciones', [ControladorReservacion::class, 'store'])->name('reservaciones.store');
-    Route::put('reservaciones/{reservation}', [ControladorReservacion::class, 'update'])->name('reservaciones.update');
-    Route::delete('reservaciones/{reservation}', [ControladorReservacion::class, 'destroy'])->name('reservaciones.destroy');
+    // Rutas de administrador
+    Route::middleware('role:admin')->group(function () {
+        // Recursos principales
+        Route::resource('habitaciones', ControladorHabitacion::class)->parameters(['habitaciones' => 'room'])->names([
+            'index' => 'habitaciones.index',
+            'create' => 'habitaciones.create',
+            'store' => 'habitaciones.store',
+            'show' => 'habitaciones.show',
+            'edit' => 'habitaciones.edit',
+            'update' => 'habitaciones.update',
+            'destroy' => 'habitaciones.destroy',
+        ]);
+        Route::resource('inventarios', ControladorInventario::class)->parameters(['inventarios' => 'inventory'])->except(['show'])->names([
+            'index' => 'inventarios.index',
+            'create' => 'inventarios.create',
+            'store' => 'inventarios.store',
+            'edit' => 'inventarios.edit',
+            'update' => 'inventarios.update',
+            'destroy' => 'inventarios.destroy',
+        ]);
+        Route::resource('usuarios', ControladorUsuario::class)->parameters(['usuarios' => 'user'])->except(['show'])->names([
+            'index' => 'usuarios.index',
+            'create' => 'usuarios.create',
+            'store' => 'usuarios.store',
+            'edit' => 'usuarios.edit',
+            'update' => 'usuarios.update',
+            'destroy' => 'usuarios.destroy',
+        ]);
+        Route::resource('vehiculos', ControladorVehiculo::class)->parameters(['vehiculos' => 'vehicle'])->names([
+            'index' => 'vehiculos.index',
+            'create' => 'vehiculos.create',
+            'store' => 'vehiculos.store',
+            'show' => 'vehiculos.show',
+            'edit' => 'vehiculos.edit',
+            'update' => 'vehiculos.update',
+            'destroy' => 'vehiculos.destroy',
+        ]);
+        Route::put('vehiculos/{vehicle}/registrar-salida', [ControladorVehiculo::class, 'registerExit'])->name('vehiculos.registrar-salida');
 
-    // Pagos
+        // Reportes PDF
+        Route::prefix('reportes')->name('reportes.')->group(function () {
+            Route::get('habitaciones', [ControladorReporte::class,'roomsPdf'])->name('habitaciones');
+            Route::get('inventarios', [ControladorReporte::class,'inventoriesPdf'])->name('inventarios');
+            Route::get('usuarios', [ControladorReporte::class,'usersPdf'])->name('usuarios');
+            Route::get('general', [ControladorReporte::class,'generalPdf'])->name('general');
+        });
+
+        // Calendario / Reservas (endpoints AJAX + vista)
+        Route::get('reservaciones/calendario', [ControladorReservacion::class, 'calendar'])->name('reservaciones.calendar');
+        Route::get('reservaciones/gestion', [ControladorReservacion::class, 'management'])->name('reservaciones.management');
+        Route::get('reservaciones/eventos', [ControladorReservacion::class, 'events'])->name('reservaciones.events');
+        Route::post('reservaciones', [ControladorReservacion::class, 'store'])->name('reservaciones.store');
+        Route::put('reservaciones/{reservation}', [ControladorReservacion::class, 'update'])->name('reservaciones.update');
+        Route::delete('reservaciones/{reservation}', [ControladorReservacion::class, 'destroy'])->name('reservaciones.destroy');
+
+        // Pagos
     Route::resource('pagos', ControladorPago::class)->parameters(['pagos' => 'payment'])->names([
         'index' => 'pagos.index',
         'create' => 'pagos.create',
@@ -107,6 +111,7 @@ Route::middleware('auth')->group(function () {
         'update' => 'pagos.update',
         'destroy' => 'pagos.destroy',
     ]);
+    });
 });
 
 // Rutas para crear y verificar disponibilidad de reservas
