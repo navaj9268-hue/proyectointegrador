@@ -48,7 +48,6 @@ class ControladorCatalogo extends Controller
             'guest_name' => 'required|string|max:255',
             'guest_email' => 'required|email',
             'guest_phone' => 'required|string|max:20',
-            'numero_documento' => 'required|string|max:20|unique:huespedes,numero_documento',
             'fecha_entrada' => 'required|date|after_or_equal:today',
             'fecha_salida' => 'required|date|after:fecha_entrada',
             'notas' => 'nullable|string'
@@ -73,8 +72,7 @@ class ControladorCatalogo extends Controller
             ['email' => $validated['guest_email']],
             [
                 'name' => $validated['guest_name'],
-                'phone' => $validated['guest_phone'],
-                'numero_documento' => $validated['numero_documento']
+                'phone' => $validated['guest_phone']
             ]
         );
 
