@@ -100,7 +100,13 @@
 
   <div class="d-flex align-items-center gap-2" style="flex-wrap:wrap;">
     <form method="GET" class="search-box" role="search">
-      <input name="q" value="{{ request('q') }}" class="form-control form-control-sm" placeholder="🔎 Buscar por nombre o email...">
+      <input name="q" value="{{ request('q') }}" class="form-control form-control-sm" placeholder="🔎 Buscar por nombre, email o código...">
+      <select name="status" class="form-select form-select-sm">
+        <option value="">Todos los estatus</option>
+        @foreach(\App\Models\Usuario::statuses() as $key => $label)
+          <option value="{{ $key }}" @selected(request('status') === $key)>{{ $label }}</option>
+        @endforeach
+      </select>
       <button class="btn btn-sm btn-outline-secondary">Buscar</button>
     </form>
 
@@ -119,7 +125,11 @@
     <thead>
       <tr>
         <th>Nombre</th>
+        <th>Código</th>
         <th>Email</th>
+        <th>Teléfono</th>
+        <th>Estatus</th>
+        <th>Categoría</th>
         <th class="text-end">Acciones</th>
       </tr>
     </thead>
@@ -127,20 +137,24 @@
       @forelse($users as $u)
         <tr>
           <td>{{ $u->name }}</td>
+          <td>{{ $u->client_code ?? '-' }}</td>
           <td>{{ $u->email }}</td>
+          <td>{{ $u->phone ?? '-' }}</td>
+          <td>{{ \App\Models\Usuario::statuses()[$u->status] ?? ucfirst($u->status) }}</td>
+          <td>{{ \App\Models\Usuario::categories()[$u->category] ?? ucfirst($u->category) }}</td>
           <td class="text-end">
             <a href="{{ route('usuarios.edit', $u) }}" class="btn btn-sm btn-outline-secondary">✏️ Editar</a>
 
             <form action="{{ route('usuarios.destroy', $u) }}" method="POST" style="display:inline-block;" onsubmit="return confirmDelete(event, this, '{{ $u->name }}')">
               @csrf
               @method('DELETE')
-              <button class="btn btn-sm btn-danger">Eliminar</button>
+              <button class="btn btn-sm btn-danger">Desactivar</button>
             </form>
           </td>
         </tr>
       @empty
         <tr>
-          <td colspan="3">
+          <td colspan="7">
             <div class="empty-state">
               <strong>No hay usuarios aún</strong>
               <p class="mb-2">Crea el primer usuario para empezar a usar el sistema.</p>
@@ -159,13 +173,17 @@
         <div class="user-meta">
           <div class="user-name">{{ $u->name }}</div>
           <div class="user-email">{{ $u->email }}</div>
+          <div class="text-muted small">Código: {{ $u->client_code ?? '-' }}</div>
+          <div class="text-muted small">Tel: {{ $u->phone ?? '-' }}</div>
+          <div class="text-muted small">Estatus: {{ \App\Models\Usuario::statuses()[$u->status] ?? ucfirst($u->status) }}</div>
+          <div class="text-muted small">Categoría: {{ \App\Models\Usuario::categories()[$u->category] ?? ucfirst($u->category) }}</div>
         </div>
         <div class="actions">
           <a href="{{ route('usuarios.edit', $u) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
           <form action="{{ route('usuarios.destroy', $u) }}" method="POST" style="display:inline-block;" onsubmit="return confirmDelete(event, this, '{{ $u->name }}')">
             @csrf
             @method('DELETE')
-            <button class="btn btn-sm btn-danger">Eliminar</button>
+            <button class="btn btn-sm btn-danger">Desactivar</button>
           </form>
         </div>
       </div>

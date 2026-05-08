@@ -26,13 +26,16 @@
     <textarea name="notas" class="form-control" rows="2">{{ old('notas', $inventory->notas) }}</textarea>
   </div>
   <div class="mb-3">
-    <label>Hotel (opcional)</label>
-    <select name="hotel_id" class="form-select">
-      <option value="">-- Ninguno --</option>
-      @foreach(\App\Models\Hotel::all() as $h)
+    <label>Hotel <span class="text-danger">*</span></label>
+    <select name="hotel_id" class="form-select @error('hotel_id') is-invalid @enderror" required>
+      <option value="">-- Selecciona un hotel --</option>
+      @foreach($hotels as $h)
         <option value="{{ $h->id }}" @selected(old('hotel_id', $inventory->hotel_id)==$h->id)>{{ $h->name }}</option>
       @endforeach
     </select>
+    @error('hotel_id')
+      <div class="invalid-feedback d-block">{{ $message }}</div>
+    @enderror
   </div>
 
   <button class="btn btn-primary">Guardar</button>

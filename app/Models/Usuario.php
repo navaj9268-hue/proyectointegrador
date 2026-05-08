@@ -24,6 +24,13 @@ class Usuario extends Authenticatable
         'email',
         'password',
         'role',
+        'rfc_id',
+        'phone',
+        'address',
+        'client_code',
+        'status',
+        'category',
+        'credit_limit',
     ];
 
     /**
@@ -46,6 +53,25 @@ class Usuario extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'credit_limit' => 'decimal:2',
+        ];
+    }
+
+    public static function statuses(): array
+    {
+        return [
+            'active' => 'Activo',
+            'inactive' => 'Inactivo',
+            'blacklist' => 'Lista negra',
+        ];
+    }
+
+    public static function categories(): array
+    {
+        return [
+            'minorista' => 'Minorista',
+            'mayorista' => 'Mayorista',
+            'vip' => 'VIP',
         ];
     }
 

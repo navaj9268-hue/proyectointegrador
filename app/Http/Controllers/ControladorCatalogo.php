@@ -15,7 +15,12 @@ class ControladorCatalogo extends Controller
     // Mostrar catálogo de habitaciones
     public function index(Request $request)
     {
-        $query = Habitacion::query();
+        $query = Habitacion::query()->orderByDesc('id');
+
+        // Para clientes, mostrar solo habitaciones disponibles.
+        if (auth()->check() && auth()->user()->role === 'cliente') {
+            $query->where('status', 'available');
+        }
 
         // Filtrar por estado si es especificado
         if ($request->has('status') && $request->status) {

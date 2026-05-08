@@ -39,8 +39,8 @@ Route::post('reset-contraseña', [AuthController::class,'resetPassword'])->name(
 Route::middleware('auth')->group(function () {
     Route::get('inicio', [HomeController::class,'index'])->name('inicio');
 
-    // Catálogo de habitaciones para clientes
-    Route::middleware('role:cliente')->group(function () {
+    // Catálogo de habitaciones para clientes y administradores
+    Route::middleware('role:cliente|admin')->group(function () {
         Route::get('catalogo/habitaciones', [ControladorCatalogo::class, 'index'])->name('catalogo.index');
         Route::get('catalogo/habitaciones/{room}', [ControladorCatalogo::class, 'show'])->name('catalogo.mostrar');
         Route::post('catalogo/reservaciones', [ControladorCatalogo::class, 'storeReservation'])->name('catalogo.reservaciones.store');
@@ -66,6 +66,9 @@ Route::middleware('auth')->group(function () {
             'update' => 'inventarios.update',
             'destroy' => 'inventarios.destroy',
         ]);
+        Route::get('perfil', [ControladorUsuario::class, 'profile'])->name('usuarios.profile');
+        Route::put('perfil', [ControladorUsuario::class, 'updateProfile'])->name('usuarios.profile.update');
+
         Route::resource('usuarios', ControladorUsuario::class)->parameters(['usuarios' => 'user'])->except(['show'])->names([
             'index' => 'usuarios.index',
             'create' => 'usuarios.create',

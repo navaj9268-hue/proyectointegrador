@@ -143,7 +143,7 @@
               <span style="margin-right:6px;">👤</span><small>Cuenta</small>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="{{ route('usuarios.edit', auth()->user()) }}">Perfil</a></li>
+              <li><a class="dropdown-item" href="{{ route('usuarios.profile') }}">Perfil</a></li>
               <li><hr class="dropdown-divider"></li>
               <li>
                 <form method="POST" action="{{ route('logout') }}">

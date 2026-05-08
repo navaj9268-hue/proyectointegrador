@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h4>Inventario</h4>
   <div>
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCreateInventory">+ Nuevo</button>
+    <a href="{{ route('inventarios.create') }}" class="btn btn-success">+ Nuevo artículo</a>
   </div>
 </div>
 
@@ -50,36 +50,4 @@
 </table>
 
 {{ $inventories->withQueryString()->links() }}
-
-<!-- Modal crear inventario -->
-<div class="modal fade" id="modalCreateInventory" tabindex="-1">
-  <div class="modal-dialog">
-    <form method="POST" action="{{ route('inventarios.store') }}" class="modal-content">
-      @csrf
-      <div class="modal-header">
-        <h5 class="modal-title">Nuevo artículo</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-3"><label>Artículo</label><input name="articulo" class="form-control" required></div>
-        <div class="mb-3"><label>Cantidad</label><input name="cantidad" type="number" class="form-control" value="1" required></div>
-        <div class="mb-3"><label>Ubicación</label><input name="ubicacion" class="form-control"></div>
-        <div class="mb-3"><label>Notas</label><textarea name="notas" class="form-control" rows="2"></textarea></div>
-        <div class="mb-3">
-          <label>Hotel (opcional)</label>
-          <select name="hotel_id" class="form-select">
-            <option value="">-- Ninguno --</option>
-            @foreach(\App\Models\Hotel::all() as $h)
-              <option value="{{ $h->id }}">{{ $h->name }}</option>
-            @endforeach
-          </select>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-success">Guardar</button>
-      </div>
-    </form>
-  </div>
-</div>
 @endsection

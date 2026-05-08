@@ -24,28 +24,69 @@
         <form method="POST" action="{{ route('usuarios.store') }}">
           @csrf
 
-          <div class="mb-3">
-            <label class="form-label">Nombre</label>
-            <input name="name" value="{{ old('name') }}" class="form-control" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input name="email" value="{{ old('email') }}" type="email" class="form-control" required>
-          </div>
-
-          <div class="row g-2">
-            <div class="col-md-6 mb-3">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Nombre</label>
+              <input name="name" value="{{ old('name') }}" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">RFC / ID</label>
+              <input name="rfc_id" value="{{ old('rfc_id') }}" class="form-control" placeholder="RFC o identificación" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input name="email" value="{{ old('email') }}" type="email" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Código de cliente</label>
+              <input name="client_code" value="{{ old('client_code') }}" class="form-control" placeholder="Código único del cliente" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Teléfono</label>
+              <input name="phone" value="{{ old('phone') }}" class="form-control" placeholder="Ej: 55 1234 5678" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Categoría</label>
+              <select name="category" class="form-select" required>
+                @foreach(\App\Models\Usuario::categories() as $key => $label)
+                  <option value="{{ $key }}" @selected(old('category') === $key)>{{ $label }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Dirección</label>
+              <textarea name="address" class="form-control" rows="2" placeholder="Dirección completa">{{ old('address') }}</textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Estatus</label>
+              <select name="status" class="form-select" required>
+                @foreach(\App\Models\Usuario::statuses() as $key => $label)
+                  <option value="{{ $key }}" @selected(old('status', 'active') === $key)>{{ $label }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Límite de crédito</label>
+              <input name="credit_limit" value="{{ old('credit_limit', '0.00') }}" type="number" step="0.01" min="0" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Rol</label>
+              <select name="role" class="form-select" required>
+                <option value="cliente" @selected(old('role','cliente')==='cliente')>Cliente</option>
+                <option value="admin" @selected(old('role')==='admin')>Administrador</option>
+              </select>
+            </div>
+            <div class="col-md-6">
               <label class="form-label">Contraseña</label>
               <input name="password" type="password" class="form-control" required>
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6">
               <label class="form-label">Confirmar contraseña</label>
               <input name="password_confirmation" type="password" class="form-control" required>
             </div>
           </div>
 
-          <div class="d-flex gap-2">
+          <div class="d-flex gap-2 mt-3">
             <button class="btn" style="background:linear-gradient(90deg,#b23a3a,#ff6b6b); color:#fff; border:none;">Crear usuario</button>
             <a href="{{ route('usuarios.index') }}" class="btn btn-outline-secondary">Cancelar</a>
           </div>
