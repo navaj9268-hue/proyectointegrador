@@ -1,5 +1,7 @@
 @extends('layouts.app')
+
 @section('title','Calendario de reservas')
+
 @section('content')
 
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
@@ -7,268 +9,398 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales/es.global.js"></script>
 
 <style>
-  .fc .fc-toolbar-title { color: #b23a3a; font-weight:700; }
-  .fc .fc-daygrid-event { border-radius:8px; }
+    .fc .fc-toolbar-title{
+        color:#b23a3a;
+        font-weight:700;
+    }
+
+    .fc .fc-daygrid-event{
+        border-radius:8px;
+    }
 </style>
 
 <div class="container-fluid">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4>Calendario de Reservas</h4>
-    <div>
-      <button class="btn btn-sm" style="background:linear-gradient(90deg,#b23a3a,#ff6b6b); color:#fff;" id="btnCreate">+ Nueva reserva</button>
-    </div>
-  </div>
 
-  <div id="calendar"></div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Calendario de Reservas</h4>
+
+        <button
+            class="btn btn-sm"
+            style="background:linear-gradient(90deg,#b23a3a,#ff6b6b); color:#fff;"
+            id="btnCreate">
+            + Nueva reserva
+        </button>
+    </div>
+
+    <div id="calendar"></div>
 </div>
 
-<!-- Modal Crear/Editar Reserva -->
-<div class="modal fade" id="reservationModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <form id="reservationForm" class="modal-content">
-      @csrf
-      <div class="modal-header">
-        <h5 class="modal-title">Crear reserva</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" name="_method" id="form_method" value="POST">
-        <input type="hidden" name="reservation_id" id="reservation_id">
+<!-- MODAL -->
+<div class="modal fade" id="reservationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form id="reservationForm" class="modal-content">
 
-        <div class="mb-2">
-          <label class="form-label">Huésped</label>
-          <input name="guest_name" id="guest_name" class="form-control" required>
-        </div>
+            @csrf
 
-        <div class="mb-2">
-          <label class="form-label">Habitación (opcional)</label>
-          <select name="room_id" id="room_id" class="form-select">
-            <option value="">-- Ninguna --</option>
-            @foreach($rooms as $r)
-              <option value="{{ $r->id }}">{{ $r->number }} ({{ $r->type?->name ?? '' }})</option>
-            @endforeach
-          </select>
-        </div>
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Crear reserva
+                </h5>
 
-        <div class="row g-2 mb-2">
-          <div class="col">
-            <label class="form-label">Entrada</label>
-            <input type="date" name="fecha_entrada" id="checkin_at" class="form-control" required>
-          </div>
-          <div class="col">
-            <label class="form-label">Salida</label>
-            <input type="date" name="fecha_salida" id="checkout_at" class="form-control" required>
-          </div>
-        </div>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+            </div>
 
-        <div class="mb-2">
-          <label class="form-label">Notas</label>
-          <textarea name="notas" id="notes" class="form-control" rows="2"></textarea>
-        </div>
+            <div class="modal-body">
 
-      </div>
-      <div class="modal-footer">
-        <button type="button" id="deleteBtn" class="btn btn-danger me-auto" style="display:none;">Eliminar</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Guardar</button>
-      </div>
-    </form>
-  </div>
+                <input type="hidden" id="reservation_id">
+
+                <!-- HUESPED -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        Huésped
+                    </label>
+
+                    <input
+                        type="text"
+                        id="guest_name"
+                        class="form-control"
+                        required>
+                </div>
+
+                <!-- HABITACION -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        Habitación (opcional)
+                    </label>
+
+                    <select id="room_id" class="form-select">
+
+                        <option value="">
+                            -- Ninguna --
+                        </option>
+
+                        @foreach($rooms as $r)
+
+                            <option value="{{ $r->id }}">
+                                {{ $r->numero }}
+                                ({{ $r->tipo ?? '' }})
+                            </option>
+
+                        @endforeach
+
+                    </select>
+                </div>
+
+                <!-- FECHAS -->
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                            Entrada
+                        </label>
+
+                        <input
+                            type="date"
+                            id="fecha_entrada"
+                            class="form-control"
+                            required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                            Salida
+                        </label>
+
+                        <input
+                            type="date"
+                            id="fecha_salida"
+                            class="form-control"
+                            required>
+                    </div>
+
+                </div>
+
+                <!-- NOTAS -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        Notas
+                    </label>
+
+                    <textarea
+                        id="notas"
+                        class="form-control"
+                        rows="3"></textarea>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    id="deleteBtn"
+                    class="btn btn-danger me-auto"
+                    style="display:none;">
+                    Eliminar
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+                    Guardar
+                </button>
+
+            </div>
+
+        </form>
+    </div>
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+
+document.addEventListener('DOMContentLoaded', function () {
+
     const calendarEl = document.getElementById('calendar');
-    const modalEl = new bootstrap.Modal(document.getElementById('reservationModal'));
+
+    const modal = new bootstrap.Modal(
+        document.getElementById('reservationModal')
+    );
+
     const form = document.getElementById('reservationForm');
+
     const deleteBtn = document.getElementById('deleteBtn');
 
-    // CSRF token para fetch
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+    const csrf =
+        document.querySelector('meta[name="csrf-token"]')
+        ?.getAttribute('content');
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
-      locale: 'es',
-      initialView: 'dayGridMonth',
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-      },
-      buttonText: {
-        today: 'Hoy',
-        month: 'Mes',
-        week: 'Semana',
-        day: 'Día'
-      },
-      selectable: true,
-      editable: true,
-      events: {
-        url: '{{ route("reservaciones.events") }}',
-        method: 'GET'
-      },
 
-      // click a día -> abrir modal con fechas rellenadas
-      dateClick: function(info) {
-        resetForm();
-        document.getElementById('checkin_at').value = info.dateStr;
-        document.getElementById('checkout_at').value = info.dateStr;
-        document.querySelector('.modal-title').textContent = 'Crear reserva';
-        deleteBtn.style.display = 'none';
-        modalEl.show();
-      },
+        locale: 'es',
 
-      // click en evento -> abrir modal para editar
-      eventClick: function(info) {
-        const ev = info.event;
-        resetForm();
-        document.querySelector('.modal-title').textContent = 'Editar reserva';
-        document.getElementById('reservation_id').value = ev.id;
-        // rellenar campos
-        document.getElementById('guest_name').value = ev.extendedProps.guest || '';
-        document.getElementById('notes').value = ev.extendedProps.notes || '';
-        document.getElementById('checkin_at').value = ev.startStr;
-        // restar 1 dia del end porque en server sumamos 1
-        if (ev.end) {
-          const end = new Date(ev.end);
-          end.setDate(end.getDate() - 1);
-          document.getElementById('checkout_at').value = end.toISOString().slice(0,10);
-        } else {
-          document.getElementById('checkout_at').value = ev.startStr;
+        initialView: 'dayGridMonth',
+
+        selectable: true,
+
+        editable: true,
+
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+
+        buttonText: {
+            today: 'Hoy',
+            month: 'Mes',
+            week: 'Semana',
+            day: 'Día'
+        },
+
+        events: '{{ route("reservaciones.events") }}',
+
+        // CLICK DIA
+        dateClick(info) {
+
+            resetForm();
+
+            document.getElementById('fecha_entrada').value = info.dateStr;
+            document.getElementById('fecha_salida').value = info.dateStr;
+
+            deleteBtn.style.display = 'none';
+
+            document.querySelector('.modal-title').innerHTML =
+                'Crear reserva';
+
+            modal.show();
+        },
+
+        // CLICK EVENTO
+        eventClick(info) {
+
+            resetForm();
+
+            const ev = info.event;
+
+            document.querySelector('.modal-title').innerHTML =
+                'Editar reserva';
+
+            document.getElementById('reservation_id').value = ev.id;
+
+            document.getElementById('guest_name').value =
+                ev.extendedProps.guest || '';
+
+            document.getElementById('room_id').value =
+                ev.extendedProps.room_id || '';
+
+            document.getElementById('notas').value =
+                ev.extendedProps.notas || '';
+
+            document.getElementById('fecha_entrada').value =
+                ev.startStr;
+
+            if (ev.end) {
+
+                const end = new Date(ev.end);
+
+                end.setDate(end.getDate() - 1);
+
+                document.getElementById('fecha_salida').value =
+                    end.toISOString().slice(0,10);
+
+            }
+
+            deleteBtn.style.display = 'inline-block';
+
+            modal.show();
         }
-        if (ev.extendedProps.room_id) {
-          document.getElementById('room_id').value = ev.extendedProps.room_id;
-        } else {
-          document.getElementById('room_id').value = '';
-        }
-
-        deleteBtn.style.display = 'inline-block';
-        modalEl.show();
-      },
-
-      // drag/drop -> actualizar fechas
-      eventDrop: function(info) {
-        const id = info.event.id;
-        const start = info.event.startStr;
-        let end = info.event.endStr;
-        if (!end) end = start;
-        // enviar PUT
-        fetch(`{{ url('reservaciones') }}/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': token,
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({ fecha_entrada: start, fecha_salida: end })
-        }).then(r => r.json()).then(resp => {
-          if (!resp.success) {
-            alert('Error al mover la reserva');
-            info.revert();
-          }
-        }).catch(e => { alert('Error'); info.revert(); });
-      },
-
-      // resize -> cambiar duración
-      eventResize: function(info) {
-        const id = info.event.id;
-        const start = info.event.startStr;
-        const end = info.event.endStr;
-        fetch(`{{ url('reservaciones') }}/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': token,
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({ fecha_entrada: start, fecha_salida: end })
-        }).then(r => r.json()).then(resp => {
-          if (!resp.success) {
-            alert('Error al actualizar la reserva');
-            info.revert();
-          }
-        }).catch(e => { alert('Error'); info.revert(); });
-      }
 
     });
 
     calendar.render();
 
-    // Botón crear rápido
-    document.getElementById('btnCreate').addEventListener('click', function(){
-      resetForm();
-      document.querySelector('.modal-title').textContent = 'Crear reserva';
-      deleteBtn.style.display = 'none';
-      modalEl.show();
-    });
+    // BOTON NUEVA
+    document.getElementById('btnCreate')
+        .addEventListener('click', function(){
 
-    // Submit form (crear o editar)
+            resetForm();
+
+            modal.show();
+        });
+
+    // GUARDAR
     form.addEventListener('submit', function(e){
-      e.preventDefault();
-      const id = document.getElementById('reservation_id').value;
-      const payload = {
-        guest_name: document.getElementById('guest_name').value,
-        room_id: document.getElementById('room_id').value || null,
-        fecha_entrada: document.getElementById('checkin_at').value,
-        fecha_salida: document.getElementById('checkout_at').value,
-        notas: document.getElementById('notes').value,
-      };
 
-      if (!payload.guest_name || !payload.fecha_entrada || !payload.fecha_salida) {
-        alert('Rellena huésped y fechas.');
-        return;
-      }
+        e.preventDefault();
 
-      const url = id ? `{{ url('reservaciones') }}/${id}` : '{{ route("reservaciones.store") }}';
-      const method = id ? 'PUT' : 'POST';
+        const id =
+            document.getElementById('reservation_id').value;
 
-      fetch(url, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': token,
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          modalEl.hide();
-          calendar.refetchEvents();
-        } else {
-          alert('Error al guardar');
-        }
-      })
-      .catch(err => { console.error(err); alert('Error en la petición'); });
+        const payload = {
+
+            guest_name:
+                document.getElementById('guest_name').value,
+
+            room_id:
+                document.getElementById('room_id').value,
+
+            fecha_entrada:
+                document.getElementById('fecha_entrada').value,
+
+            fecha_salida:
+                document.getElementById('fecha_salida').value,
+
+            notas:
+                document.getElementById('notas').value
+        };
+
+        const url = id
+            ? `/reservaciones/${id}`
+            : `{{ route('reservaciones.store') }}`;
+
+        const method = id ? 'PUT' : 'POST';
+
+        fetch(url, {
+
+            method: method,
+
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json'
+            },
+
+            body: JSON.stringify(payload)
+
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            console.log(data);
+
+            if(data.success){
+
+                modal.hide();
+
+                calendar.refetchEvents();
+
+            }else{
+
+                alert(
+                    data.message ??
+                    'Error al guardar'
+                );
+            }
+
+        })
+        .catch(err => {
+
+            console.error(err);
+
+            alert('Error del servidor');
+        });
 
     });
 
-    // Eliminar reserva
+    // ELIMINAR
     deleteBtn.addEventListener('click', function(){
-      if (!confirm('Eliminar reserva?')) return;
-      const id = document.getElementById('reservation_id').value;
-      fetch(`{{ url('reservaciones') }}/${id}`, {
-        method: 'DELETE',
-        headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }
-      }).then(r => r.json()).then(resp => {
-        if (resp.success) {
-          modalEl.hide();
-          calendar.refetchEvents();
-        } else {
-          alert('No se pudo eliminar');
-        }
-      });
+
+        if(!confirm('¿Eliminar reserva?')) return;
+
+        const id =
+            document.getElementById('reservation_id').value;
+
+        fetch(`/reservaciones/${id}`, {
+
+            method:'DELETE',
+
+            headers:{
+                'X-CSRF-TOKEN': csrf,
+                'Accept':'application/json'
+            }
+
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            if(data.success){
+
+                modal.hide();
+
+                calendar.refetchEvents();
+
+            }else{
+
+                alert('No se pudo eliminar');
+            }
+
+        });
+
     });
 
-    function resetForm() {
-      form.reset();
-      document.getElementById('reservation_id').value = '';
-      document.getElementById('form_method').value = 'POST';
-      deleteBtn.style.display = 'none';
-      document.getElementById('room_id').value = '';
+    // RESET
+    function resetForm(){
+
+        form.reset();
+
+        document.getElementById('reservation_id').value = '';
+
+        deleteBtn.style.display = 'none';
     }
 
-  });
+});
+
 </script>
 
 @endsection

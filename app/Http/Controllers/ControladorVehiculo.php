@@ -5,128 +5,463 @@ namespace App\Http\Controllers;
 use App\Models\Vehiculo;
 use App\Models\Reservacion;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ControladorVehiculo extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // Capacidad total
+    const CAPACIDAD_TOTAL = 50;
+
+    // Tarifa default
+    const TARIFA_DEFAULT = 30.00;
+
+    /*
+    |--------------------------------------------------------------------------
+    | INDEX
+    |--------------------------------------------------------------------------
+    */
+
+    public function index(Request $request)
     {
-        $vehicles = Vehiculo::with('reservation')->orderBy('created_at', 'desc')->paginate(15);
-        $parkedCount = Vehiculo::where('status', 'parking')->count();
-        $totalSpots = 20; // Configurar según necesidad
+        $query = Vehiculo::with('reservation')
+            ->latest('fecha_entrada');
 
-        return view('vehiculos.indice', compact('vehicles', 'parkedCount', 'totalSpots'));
-    }
+        // BUSQUEDA
+        if ($request->filled('q')) {
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $reservations = Reservacion::where('status', 'checked_in')->get();
-        return view('vehiculos.crear', compact('reservations'));
-    }
+            $q = $request->q;
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'placa' => 'required|string|unique:vehiculos,placa',
-            'marca' => 'nullable|string',
-            'modelo' => 'nullable|string',
-            'color' => 'nullable|string',
-            'reservation_id' => 'nullable|exists:reservaciones,id',
-            'lugar_estacionamiento' => 'nullable|string',
-            'notas' => 'nullable|string',
-        ]);
+            $query->where(function ($s) use ($q) {
 
-        $validated['status'] = 'parking';
-        $validated['fecha_entrada'] = now();
+                $s->where('placa', 'like', "%{$q}%")
+                  ->orWhere('marca', 'like', "%{$q}%")
+                  ->orWhere('modelo', 'like', "%{$q}%");
 
-        Vehiculo::create($validated);
-
-        return redirect()->route('vehiculos.index')->with('success', 'Vehículo registrado exitosamente');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Vehiculo $vehicle)
-    {
-        $vehicle->load('reservation');
-        return view('vehiculos.mostrar', compact('vehicle'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Vehiculo $vehicle)
-    {
-        $reservations = Reservacion::where('status', 'checked_in')->orWhere('id', $vehicle->reservation_id)->get();
-        return view('vehiculos.editar', compact('vehicle', 'reservations'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Vehiculo $vehicle)
-    {
-        $validated = $request->validate([
-            'placa' => 'required|string|unique:vehiculos,placa,' . $vehicle->id,
-            'marca' => 'nullable|string',
-            'modelo' => 'nullable|string',
-            'color' => 'nullable|string',
-            'reservation_id' => 'nullable|exists:reservaciones,id',
-            'lugar_estacionamiento' => 'nullable|string',
-            'status' => 'required|in:parking,left',
-            'notas' => 'nullable|string',
-        ]);
-
-        if ($request->status === 'left' && !$vehicle->exit_date) {
-            $validated['fecha_salida'] = now();
+            });
         }
 
-        $vehicle->update($validated);
+        // FILTRO STATUS
+        if ($request->filled('status')) {
 
-        return redirect()->route('vehiculos.index')->with('success', 'Vehículo actualizado exitosamente');
+            $query->where('status', $request->status);
+
+        } else {
+
+            $query->where(
+                'status',
+                Vehiculo::STATUS_ESTACIONADO
+            );
+
+        }
+
+        $vehicles = $query->paginate(15)
+            ->withQueryString();
+
+        $parkedCount = Vehiculo::estacionados()
+            ->count();
+
+        $availableSpots = max(
+            0,
+            self::CAPACIDAD_TOTAL - $parkedCount
+        );
+
+        $totalSpots = self::CAPACIDAD_TOTAL;
+
+        $ocupacion = $totalSpots > 0
+            ? round(($parkedCount / $totalSpots) * 100)
+            : 0;
+
+        $lugaresOcupados = Vehiculo::estacionados()
+            ->whereNotNull('lugar_estacionamiento')
+            ->pluck('lugar_estacionamiento')
+            ->toArray();
+
+        // 🔥 CORREGIDO
+        return view('vehiculos.indice', compact(
+            'vehicles',
+            'parkedCount',
+            'availableSpots',
+            'totalSpots',
+            'ocupacion',
+            'lugaresOcupados'
+        ));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE
+    |--------------------------------------------------------------------------
+    */
+
+    public function create()
+    {
+        $reservaciones = Reservacion::whereIn(
+                'status',
+                ['confirmed', 'checked_in']
+            )
+            ->with('guest')
+            ->get();
+
+        $lugaresOcupados = Vehiculo::estacionados()
+            ->whereNotNull('lugar_estacionamiento')
+            ->pluck('lugar_estacionamiento')
+            ->toArray();
+
+        $tipos = Vehiculo::tipos();
+
+        $capacidad = self::CAPACIDAD_TOTAL;
+
+        // 🔥 CORREGIDO
+        return view(
+            'vehiculos.crear',
+            compact(
+                'reservaciones',
+                'lugaresOcupados',
+                'tipos',
+                'capacidad'
+            )
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | STORE
+    |--------------------------------------------------------------------------
+    */
+
+    public function store(Request $request)
+    {
+        $request->validate([
+
+            'placa' => 'required|string|max:20',
+
+            'marca' => 'required|string|max:50',
+
+            'modelo' => 'required|string|max:50',
+
+            'color' => 'nullable|string|max:30',
+
+            'tipo' => 'nullable|string|in:auto,moto,camioneta,bus',
+
+            'lugar_estacionamiento' => 'nullable|string|max:10',
+
+            'tarifa_por_hora' => 'nullable|numeric|min:0',
+
+            'reservation_id' => 'nullable|exists:reservaciones,id',
+
+            'notas' => 'nullable|string|max:500',
+
+        ]);
+
+        // VALIDAR LUGAR
+        if ($request->filled('lugar_estacionamiento')) {
+
+            $ocupado = Vehiculo::estacionados()
+
+                ->where(
+                    'lugar_estacionamiento',
+                    $request->lugar_estacionamiento
+                )
+
+                ->exists();
+
+            if ($ocupado) {
+
+                return back()
+
+                    ->withErrors([
+                        'lugar_estacionamiento' =>
+                            'Ese lugar ya está ocupado.'
+                    ])
+
+                    ->withInput();
+            }
+        }
+
+        Vehiculo::create([
+
+            'placa' => strtoupper($request->placa),
+
+            'marca' => $request->marca,
+
+            'modelo' => $request->modelo,
+
+            'color' => $request->color,
+
+            'tipo' => $request->tipo ?? 'auto',
+
+            'status' => Vehiculo::STATUS_ESTACIONADO,
+
+            'fecha_entrada' => now(),
+
+            'lugar_estacionamiento' =>
+                $request->lugar_estacionamiento,
+
+            'tarifa_por_hora' =>
+                $request->tarifa_por_hora
+                    ?? self::TARIFA_DEFAULT,
+
+            'reservation_id' => $request->reservation_id,
+
+            'notas' => $request->notas,
+
+        ]);
+
+        return redirect()
+
+            ->route('vehiculos.index')
+
+            ->with(
+                'success',
+                'Vehículo registrado correctamente.'
+            );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SHOW
+    |--------------------------------------------------------------------------
+    */
+
+    public function show(Vehiculo $vehicle)
+    {
+        $vehicle->load('reservation.guest');
+
+        // 🔥 CORREGIDO
+        return view(
+            'vehiculos.mostrar',
+            compact('vehicle')
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | EDIT
+    |--------------------------------------------------------------------------
+    */
+
+    public function edit(Vehiculo $vehicle)
+    {
+        $reservaciones = Reservacion::whereIn(
+                'status',
+                ['confirmed', 'checked_in']
+            )
+
+            ->with('guest')
+
+            ->get();
+
+        $lugaresOcupados = Vehiculo::estacionados()
+
+            ->whereNotNull('lugar_estacionamiento')
+
+            ->where('id', '!=', $vehicle->id)
+
+            ->pluck('lugar_estacionamiento')
+
+            ->toArray();
+
+        $tipos = Vehiculo::tipos();
+
+        $capacidad = self::CAPACIDAD_TOTAL;
+
+        // 🔥 CORREGIDO
+        return view(
+            'vehiculos.editar',
+            compact(
+                'vehicle',
+                'reservaciones',
+                'lugaresOcupados',
+                'tipos',
+                'capacidad'
+            )
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE
+    |--------------------------------------------------------------------------
+    */
+
+    public function update(
+        Request $request,
+        Vehiculo $vehicle
+    )
+    {
+        $request->validate([
+
+            'placa' => 'required|string|max:20',
+
+            'marca' => 'required|string|max:50',
+
+            'modelo' => 'required|string|max:50',
+
+            'color' => 'nullable|string|max:30',
+
+            'tipo' => 'nullable|string|in:auto,moto,camioneta,bus',
+
+            'lugar_estacionamiento' => 'nullable|string|max:10',
+
+            'tarifa_por_hora' => 'nullable|numeric|min:0',
+
+            'reservation_id' => 'nullable|exists:reservaciones,id',
+
+            'notas' => 'nullable|string|max:500',
+
+        ]);
+
+        $vehicle->update([
+
+            'placa' => strtoupper($request->placa),
+
+            'marca' => $request->marca,
+
+            'modelo' => $request->modelo,
+
+            'color' => $request->color,
+
+            'tipo' => $request->tipo,
+
+            'lugar_estacionamiento' =>
+                $request->lugar_estacionamiento,
+
+            'tarifa_por_hora' =>
+                $request->tarifa_por_hora,
+
+            'reservation_id' =>
+                $request->reservation_id,
+
+            'notas' => $request->notas,
+
+        ]);
+
+        return redirect()
+
+            ->route('vehiculos.index')
+
+            ->with(
+                'success',
+                'Vehículo actualizado correctamente.'
+            );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | DESTROY
+    |--------------------------------------------------------------------------
+    */
+
     public function destroy(Vehiculo $vehicle)
     {
         $vehicle->delete();
-        return redirect()->route('vehiculos.index')->with('success', 'Vehículo eliminado exitosamente');
+
+        return redirect()
+
+            ->route('vehiculos.index')
+
+            ->with(
+                'success',
+                'Vehículo eliminado correctamente.'
+            );
     }
 
-    /**
-     * Registrar salida de vehículo
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | REGISTER EXIT
+    |--------------------------------------------------------------------------
+    */
+
     public function registerExit(Vehiculo $vehicle)
     {
+        if ($vehicle->yaSalio()) {
+
+            return back()
+
+                ->with(
+                    'error',
+                    'Este vehículo ya salió.'
+                );
+        }
+
+        $fechaSalida = now();
+
+        $totalCobrado = $vehicle->calcularTotal();
+
         $vehicle->update([
-            'status' => 'left',
-            'exit_date' => now(),
+
+            'status' => Vehiculo::STATUS_SALIDA,
+
+            'fecha_salida' => $fechaSalida,
+
+            'total_cobrado' => $totalCobrado,
+
         ]);
 
-        return redirect()->route('vehiculos.index')->with('success', 'Salida del vehículo registrada exitosamente');
+        return redirect()
+
+            ->route('vehiculos.index')
+
+            ->with(
+                'success',
+                'Salida registrada correctamente.'
+            );
     }
 
-    /**
-     * Dashboard de estacionamiento
-     */
-    public function parking()
-    {
-        $vehicles = Vehiculo::where('status', 'parking')->with('reservation')->paginate(10);
-        $parkedCount = Vehiculo::where('status', 'parking')->count();
-        $totalSpots = 20;
-        $availableSpots = $totalSpots - $parkedCount;
+    /*
+    |--------------------------------------------------------------------------
+    | ESTACIONAMIENTO
+    |--------------------------------------------------------------------------
+    */
 
-        return view('vehiculos.estacionamiento', compact('vehicles', 'parkedCount', 'availableSpots', 'totalSpots'));
+    public function estacionamiento()
+    {
+        $parkedCount = Vehiculo::estacionados()
+            ->count();
+
+        $availableSpots = max(
+            0,
+            self::CAPACIDAD_TOTAL - $parkedCount
+        );
+
+        $totalSpots = self::CAPACIDAD_TOTAL;
+
+        $ocupacion = $totalSpots > 0
+            ? round(($parkedCount / $totalSpots) * 100)
+            : 0;
+
+        $vehicles = Vehiculo::estacionados()
+
+            ->with('reservation.guest')
+
+            ->latest('fecha_entrada')
+
+            ->paginate(10);
+
+        $lugaresOcupados = Vehiculo::estacionados()
+
+            ->whereNotNull('lugar_estacionamiento')
+
+            ->get([
+                'lugar_estacionamiento',
+                'placa',
+                'marca',
+                'modelo',
+                'id'
+            ])
+
+            ->keyBy('lugar_estacionamiento');
+
+        return view(
+            'vehiculos.estacionamiento',
+            compact(
+                'vehicles',
+                'parkedCount',
+                'availableSpots',
+                'totalSpots',
+                'ocupacion',
+                'lugaresOcupados'
+            )
+        );
     }
 }

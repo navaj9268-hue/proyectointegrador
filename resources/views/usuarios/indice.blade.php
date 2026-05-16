@@ -2,209 +2,418 @@
 @section('title','Usuarios')
 
 @section('content')
+
 <style>
-  :root{
-    --r-red: #b23a3a;
-    --muted: #6c6c6c;
-  }
+:root{
+    --primary:#b23a3a;
+    --primary-light:#ff6b6b;
+    --bg:#f6f7fb;
+    --card:#ffffff;
+    --text:#2c2c2c;
+    --muted:#7c7c7c;
+    --border:#ececec;
+}
 
-  .users-header {
+body{
+    background: var(--bg);
+}
+
+/* HEADER */
+.page-header{
     display:flex;
-    gap:12px;
-    align-items:center;
     justify-content:space-between;
-    margin-bottom:14px;
+    align-items:center;
+    margin-bottom:25px;
     flex-wrap:wrap;
-  }
+    gap:15px;
+}
 
-  .users-title {
+.page-title{
+    font-size:30px;
+    font-weight:700;
+    color:var(--text);
     display:flex;
     align-items:center;
-    gap:10px;
-    font-weight:700;
-    color:var(--r-red);
-    font-size:1.15rem;
-  }
+    gap:12px;
+}
 
-  .search-box { min-width:260px; max-width:420px; display:flex; gap:6px; }
-  .search-box .form-control { border-radius:999px 0 0 999px; border-right:0; }
-  .search-box .btn { border-radius:0 999px 999px 0; }
+.page-title span{
+    color:var(--primary);
+}
 
-  .card-wrap {
-    background: #fff;
-    border-radius:12px;
-    padding:12px;
-    border:1px solid rgba(178,58,58,0.04);
-    box-shadow: 0 8px 20px rgba(37,6,6,0.03);
-  }
+/* CARD */
+.main-card{
+    background:var(--card);
+    border-radius:22px;
+    padding:25px;
+    box-shadow:0 10px 35px rgba(0,0,0,0.06);
+    border:1px solid rgba(0,0,0,0.03);
+}
 
-  /* Table style */
-  .table-modern thead th {
-    background: linear-gradient(90deg, rgba(178,58,58,0.04), rgba(255,102,102,0.02));
-    color:#5c2b2b;
-    font-weight:700;
-    border-bottom: none;
-  }
-  .table-modern tbody tr:hover { background: rgba(178,58,58,0.02); }
-
-  .btn-add {
-    background: linear-gradient(90deg,#b23a3a,#ff6b6b);
-    color:#fff; border:none;
-    box-shadow: 0 8px 22px rgba(178,58,58,0.08);
-  }
-
-  /* Mobile cards */
-  .user-card {
-    border-radius:12px;
-    padding:12px;
-    margin-bottom:10px;
-    background:#fff;
-    border:1px solid rgba(178,58,58,0.04);
-    box-shadow: 0 8px 18px rgba(37,6,6,0.03);
+/* SEARCH */
+.top-actions{
     display:flex;
     justify-content:space-between;
-    gap:10px;
     align-items:center;
-  }
+    margin-bottom:20px;
+    gap:15px;
+    flex-wrap:wrap;
+}
 
-  .user-meta { display:flex; flex-direction:column; gap:4px; }
-  .user-name { font-weight:700; color:var(--r-red); }
-  .user-email { color:var(--muted); font-size:.95rem; }
+.search-group{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
 
-  .actions .btn { margin-left:6px; }
+.search-input{
+    min-width:280px;
+    height:48px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    padding:0 16px;
+    transition:0.3s;
+}
 
-  @media (min-width: 768px) {
-    .user-card { display:none; }
-  }
-  @media (max-width: 767px) {
-    .table-modern { display:none; }
-    .search-box { width:100%; }
-  }
+.search-input:focus{
+    border-color:var(--primary);
+    box-shadow:0 0 0 0.2rem rgba(178,58,58,0.10);
+    outline:none;
+}
 
-  .empty-state {
+.select-modern{
+    height:48px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    padding:0 14px;
+}
+
+/* BUTTONS */
+.btn-modern{
+    height:48px;
+    padding:0 22px;
+    border:none;
+    border-radius:14px;
+    font-weight:600;
+    transition:0.3s;
+    cursor:pointer;
+}
+
+.btn-primary-modern{
+    background:linear-gradient(90deg,var(--primary),var(--primary-light));
+    color:#fff;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+}
+
+.btn-primary-modern:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 25px rgba(178,58,58,0.20);
+    color:#fff;
+}
+
+.btn-edit{
+    border-radius:12px;
+    padding:8px 16px;
+    border:none;
+    background:#f1f3f9;
+    color:#444;
+    font-weight:600;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    transition:0.2s;
+}
+
+.btn-edit:hover{
+    background:#e2e6f0;
+    color:#222;
+}
+
+
+/* TABLE */
+.table-modern{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0 12px;
+}
+
+.table-modern thead th{
+    color:#888;
+    font-size:14px;
+    font-weight:600;
+    padding-bottom:10px;
+}
+
+.table-modern tbody tr{
+    background:#fff;
+    transition:0.3s;
+    box-shadow:0 4px 15px rgba(0,0,0,0.03);
+}
+
+.table-modern tbody tr:hover{
+    transform:scale(1.01);
+}
+
+.table-modern tbody td{
+    padding:18px 14px;
+    vertical-align:middle;
+    border-top:1px solid #f1f1f1;
+    border-bottom:1px solid #f1f1f1;
+}
+
+.table-modern tbody td:first-child{
+    border-left:1px solid #f1f1f1;
+    border-radius:14px 0 0 14px;
+}
+
+.table-modern tbody td:last-child{
+    border-right:1px solid #f1f1f1;
+    border-radius:0 14px 14px 0;
+}
+
+/* BADGES DE ESTATUS */
+.badge-active{
+    background:#e7fff1;
+    color:#11a75c;
+    padding:7px 14px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.badge-inactive{
+    background:#ffe5e5;
+    color:#d11a2a;
+    padding:7px 14px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.badge-blacklist{
+    background:#fff3cd;
+    color:#856404;
+    padding:7px 14px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+}
+
+/* EMPTY */
+.empty-box{
     text-align:center;
-    padding:20px;
-    border-radius:10px;
-    background: linear-gradient(180deg,#fffaf9,#fff6f6);
-    border:1px dashed rgba(178,58,58,0.06);
-    color:#8a5656;
-  }
+    padding:60px 20px;
+}
+
+/* PAGINATION simple */
+.pagination-simple{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:20px;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.pagination-simple .text-muted{
+    font-size:14px;
+    color:#888;
+}
+
+.btn-page{
+    height:40px;
+    padding:0 18px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#fff;
+    color:var(--text);
+    font-weight:600;
+    cursor:pointer;
+    transition:0.2s;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+}
+
+.btn-page:hover{
+    background:var(--primary);
+    color:#fff;
+    border-color:var(--primary);
+}
+
+.btn-page.disabled{
+    opacity:0.4;
+    pointer-events:none;
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+    .page-title{ font-size:24px; }
+    .top-actions{ flex-direction:column; align-items:stretch; }
+    .search-group{ flex-direction:column; }
+    .search-input{ width:100%; min-width:100%; }
+    .table-responsive{ overflow:auto; }
+}
 </style>
 
-<div class="users-header">
-  <div class="users-title">
-    <span style="font-size:1.1rem">👥</span>
-    Usuarios
-    <small class="text-muted ms-2">({{ $users->total() ?? 0 }})</small>
-  </div>
+<div class="page-header">
 
-  <div class="d-flex align-items-center gap-2" style="flex-wrap:wrap;">
-    <form method="GET" class="search-box" role="search">
-      <input name="q" value="{{ request('q') }}" class="form-control form-control-sm" placeholder="🔎 Buscar por nombre, email o código...">
-      <select name="status" class="form-select form-select-sm">
-        <option value="">Todos los estatus</option>
-        @foreach(\App\Models\Usuario::statuses() as $key => $label)
-          <option value="{{ $key }}" @selected(request('status') === $key)>{{ $label }}</option>
-        @endforeach
-      </select>
-      <button class="btn btn-sm btn-outline-secondary">Buscar</button>
+    <div class="page-title">
+        <span>👥</span>
+        Usuarios
+        <small class="text-muted" style="font-size:16px;font-weight:400">
+            ({{ $users->total() }})
+        </small>
+    </div>
+
+    <a href="{{ route('usuarios.create') }}"
+       class="btn-modern btn-primary-modern">
+       + Nuevo Usuario
+    </a>
+
+</div>
+
+<div class="main-card">
+
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    <!-- SEARCH -->
+    <form method="GET" class="top-actions">
+
+        <div class="search-group">
+
+            <input
+                type="text"
+                name="q"
+                value="{{ request('q') }}"
+                class="search-input"
+                placeholder="🔎 Buscar usuario..."
+            >
+
+            <select name="status" class="select-modern">
+                <option value="">Todos los estados</option>
+                @foreach(\App\Models\Usuario::statuses() as $key => $label)
+                    <option value="{{ $key }}" @selected(request('status') === $key)>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
+
+            <button type="submit" class="btn-modern btn-primary-modern">
+                Buscar
+            </button>
+
+        </div>
+
     </form>
 
-    <a href="{{ route('usuarios.create') }}" class="btn btn-sm btn-add">+ Nuevo</a>
-  </div>
+    <!-- TABLE -->
+    <div class="table-responsive">
+
+        <table class="table-modern">
+
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Código</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Estatus</th>
+                    <th>Categoría</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @forelse($users as $u)
+                    <tr>
+
+                        <td><strong>{{ $u->name }}</strong></td>
+
+                        <td>{{ $u->client_code ?? '-' }}</td>
+
+                        <td>{{ $u->email }}</td>
+
+                        <td>{{ $u->phone ?? '-' }}</td>
+
+                        <td>
+                            @if($u->status === 'active')
+                                <span class="badge-active">Activo</span>
+                            @elseif($u->status === 'inactive')
+                                <span class="badge-inactive">Inactivo</span>
+                            @else
+                                <span class="badge-blacklist">Lista negra</span>
+                            @endif
+                        </td>
+
+                        <td>
+                            {{ \App\Models\Usuario::categories()[$u->category] ?? ucfirst($u->category ?? '-') }}
+                        </td>
+
+                        <td class="text-end">
+
+                            <a href="{{ route('usuarios.edit', $u) }}" class="btn btn-edit">
+                                ✏️ Editar
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                @empty
+
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-box">
+                                <h4>No hay usuarios</h4>
+                                <p class="text-muted">Crea el primer usuario para comenzar.</p>
+                            </div>
+                        </td>
+                    </tr>
+
+                @endforelse
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <!-- PAGINACIÓN SIMPLE (sin números) -->
+    <div class="pagination-simple">
+
+        <span class="text-muted">
+            Mostrando {{ $users->firstItem() ?? 0 }} - {{ $users->lastItem() ?? 0 }}
+            de {{ $users->total() }}
+        </span>
+
+        <div style="display:flex;gap:8px;">
+
+            @if($users->onFirstPage())
+                <span class="btn-page disabled">← Anterior</span>
+            @else
+                <a href="{{ $users->previousPageUrl() }}" class="btn-page">← Anterior</a>
+            @endif
+
+            @if($users->hasMorePages())
+                <a href="{{ $users->nextPageUrl() }}" class="btn-page">Siguiente →</a>
+            @else
+                <span class="btn-page disabled">Siguiente →</span>
+            @endif
+
+        </div>
+
+    </div>
+
 </div>
 
-<div class="card-wrap">
 
-  @if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
-  @endif
-
-  {{-- Tabla para escritorio --}}
-  <table class="table table-borderless table-modern mb-0">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Código</th>
-        <th>Email</th>
-        <th>Teléfono</th>
-        <th>Estatus</th>
-        <th>Categoría</th>
-        <th class="text-end">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      @forelse($users as $u)
-        <tr>
-          <td>{{ $u->name }}</td>
-          <td>{{ $u->client_code ?? '-' }}</td>
-          <td>{{ $u->email }}</td>
-          <td>{{ $u->phone ?? '-' }}</td>
-          <td>{{ \App\Models\Usuario::statuses()[$u->status] ?? ucfirst($u->status) }}</td>
-          <td>{{ \App\Models\Usuario::categories()[$u->category] ?? ucfirst($u->category) }}</td>
-          <td class="text-end">
-            <a href="{{ route('usuarios.edit', $u) }}" class="btn btn-sm btn-outline-secondary">✏️ Editar</a>
-
-            <form action="{{ route('usuarios.destroy', $u) }}" method="POST" style="display:inline-block;" onsubmit="return confirmDelete(event, this, '{{ $u->name }}')">
-              @csrf
-              @method('DELETE')
-              <button class="btn btn-sm btn-danger">Desactivar</button>
-            </form>
-          </td>
-        </tr>
-      @empty
-        <tr>
-          <td colspan="7">
-            <div class="empty-state">
-              <strong>No hay usuarios aún</strong>
-              <p class="mb-2">Crea el primer usuario para empezar a usar el sistema.</p>
-              <a href="{{ route('usuarios.create') }}" class="btn btn-sm btn-add">➕ Crear usuario</a>
-            </div>
-          </td>
-        </tr>
-      @endforelse
-    </tbody>
-  </table>
-
-  {{-- Cards para móvil --}}
-  <div class="d-md-none mt-2">
-    @foreach($users as $u)
-      <div class="user-card">
-        <div class="user-meta">
-          <div class="user-name">{{ $u->name }}</div>
-          <div class="user-email">{{ $u->email }}</div>
-          <div class="text-muted small">Código: {{ $u->client_code ?? '-' }}</div>
-          <div class="text-muted small">Tel: {{ $u->phone ?? '-' }}</div>
-          <div class="text-muted small">Estatus: {{ \App\Models\Usuario::statuses()[$u->status] ?? ucfirst($u->status) }}</div>
-          <div class="text-muted small">Categoría: {{ \App\Models\Usuario::categories()[$u->category] ?? ucfirst($u->category) }}</div>
-        </div>
-        <div class="actions">
-          <a href="{{ route('usuarios.edit', $u) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
-          <form action="{{ route('usuarios.destroy', $u) }}" method="POST" style="display:inline-block;" onsubmit="return confirmDelete(event, this, '{{ $u->name }}')">
-            @csrf
-            @method('DELETE')
-            <button class="btn btn-sm btn-danger">Desactivar</button>
-          </form>
-        </div>
-      </div>
-    @endforeach
-  </div>
-
-  {{-- Paginación --}}
-  <div class="d-flex justify-content-between align-items-center mt-3">
-    <div class="text-muted small">Mostrando {{ $users->firstItem() ?? 0 }} - {{ $users->lastItem() ?? 0 }} de {{ $users->total() }}</div>
-    <div>{{ $users->withQueryString()->links() }}</div>
-  </div>
-</div>
-
-<script>
-  function confirmDelete(e, form, name) {
-    e.preventDefault();
-    if (confirm('¿Eliminar usuario "' + name + '"? Esta acción no se puede deshacer.')) {
-      form.submit();
-    }
-    return false;
-  }
-</script>
 
 @endsection

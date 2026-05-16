@@ -7,202 +7,600 @@ use App\Models\Reservacion;
 use App\Models\Habitacion;
 use App\Models\Huesped;
 use Carbon\Carbon;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Validator;
 
 class ControladorReservacion extends Controller
 {
+
+    /*
+    |--------------------------------------------------------------------------
+    | CALENDARIO
+    |--------------------------------------------------------------------------
+    */
+
     public function calendar()
     {
         $rooms = Habitacion::orderBy('numero')->get();
-        return view('reservaciones.calendario', compact('rooms'));
+
+        return view(
+            'reservaciones.calendario',
+            compact('rooms')
+        );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | EVENTOS CALENDARIO
+    |--------------------------------------------------------------------------
+    */
 
     public function events(Request $request)
     {
-        $start = $request->get('start');
-        $end = $request->get('end');
 
-        $query = Reservacion::with(['room', 'guest']);
-        if ($start && $end) {
-            $query = $query->where(function($q) use($start, $end) {
-                $q->whereBetween('fecha_entrada', [$start, $end])
-                  ->orWhereBetween('fecha_salida', [$start, $end])
-                  ->orWhere(function($q2) use($start, $end) {
-                      $q2->where('fecha_entrada', '<', $start)->where('fecha_salida', '>', $end);
-                  });
+        $start = $request->get('start');
+        $end   = $request->get('end');
+
+        $query = Reservacion::with([
+            'room',
+            'guest',
+            'payments.user'
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | CLIENTE SOLO VE SUS RESERVAS
+        |--------------------------------------------------------------------------
+        */
+
+        if(auth()->user()->role === 'cliente'){
+
+            $query->where(function($query){
+
+                $query->whereHas('payments', function($q){
+
+                    $q->where(
+                        'user_id',
+                        auth()->id()
+                    );
+
+                })
+
+                ->orWhereHas('guest', function($q){
+
+                    $q->where(
+                        'email',
+                        auth()->user()->email
+                    );
+
+                });
+
             });
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTRO FECHAS
+        |--------------------------------------------------------------------------
+        */
+
+        if ($start && $end) {
+
+            $query->where(function($q)
+            use($start, $end){
+
+                $q->whereBetween(
+                    'fecha_entrada',
+                    [$start, $end]
+                )
+
+                ->orWhereBetween(
+                    'fecha_salida',
+                    [$start, $end]
+                )
+
+                ->orWhere(function($q2)
+                use($start, $end){
+
+                    $q2->where(
+                        'fecha_entrada',
+                        '<',
+                        $start
+                    )
+
+                    ->where(
+                        'fecha_salida',
+                        '>',
+                        $end
+                    );
+
+                });
+
+            });
+
         }
 
         $reservations = $query->get();
 
-        $events = $reservations->map(function($r) {
+        $events = $reservations->map(function($r){
+
             return [
+
                 'id' => $r->id,
-                'title' => ($r->guest->name ?? 'Huésped') . ' — ' . ($r->room->number ?? '—'),
-                'start' => $r->checkin_at->toDateString(),
-                'end' => Carbon::parse($r->checkout_at)->addDay()->toDateString(),
-                'color' => $r->status == 'cancelled' ? '#c4c4c4' : ($r->status == 'checked_in' ? '#e06d6d' : '#b23a3a'),
+
+                'title' =>
+                    ($r->guest->name ?? 'Huésped')
+                    . ' — Hab '
+                    . ($r->room->numero ?? '-'),
+
+                'start' => Carbon::parse(
+                    $r->fecha_entrada
+                )->toDateString(),
+
+                'end' => Carbon::parse(
+                    $r->fecha_salida
+                )->addDay()->toDateString(),
+
+                'url' => route(
+                    'reservaciones.mostrar',
+                    $r->id
+                ),
+
+                'color' => $r->status == 'cancelled'
+                    ? '#c4c4c4'
+                    : (
+                        $r->status == 'checked_in'
+                        ? '#e06d6d'
+                        : '#b23a3a'
+                    ),
+
                 'extendedProps' => [
+
                     'status' => $r->status,
+
                     'room_id' => $r->room_id,
+
                     'guest' => $r->guest?->name,
-                    'notes' => $r->notes,
+
+                    'notes' => $r->notas,
+
                 ],
+
             ];
+
         });
 
         return response()->json($events);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | HABITACIONES DISPONIBLES
+    |--------------------------------------------------------------------------
+    */
+
+    public function available(Request $request)
+    {
+
+        $checkin  = $request->get('checkin');
+        $checkout = $request->get('checkout');
+
+        $ocupadas = Reservacion::where('status', '!=', 'cancelled')
+            ->when($checkin && $checkout, function($q) use ($checkin, $checkout) {
+
+                $q->where('fecha_entrada', '<=', $checkout)
+                  ->where('fecha_salida',  '>=', $checkin);
+
+            })
+            ->pluck('room_id');
+
+        $rooms = Habitacion::whereNotIn('id', $ocupadas)
+            ->orderBy('numero')
+            ->get(['id', 'numero', 'tipo', 'precio']);
+
+        return response()->json($rooms);
+
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CREAR RESERVA
+    |--------------------------------------------------------------------------
+    */
+
     public function store(Request $request)
     {
-        $data = $request->only(['room_id', 'guest_name', 'fecha_entrada', 'fecha_salida', 'notas']);
 
-        $validator = Validator::make($data, [
-            'room_id' => ['nullable', 'exists:habitaciones,id'],
-            'guest_name' => ['required', 'string', 'max:255'],
-            'fecha_entrada' => ['required', 'date'],
-            'fecha_salida' => ['required', 'date', 'after_or_equal:fecha_entrada'],
-            'notas' => ['nullable', 'string'],
+        $data = $request->validate([
+
+            'room_id' => [
+                'required',
+                'exists:habitaciones,id'
+            ],
+
+            'guest_name' => [
+                'required',
+                'string',
+                'max:255'
+            ],
+
+            'fecha_entrada' => [
+                'required',
+                'date'
+            ],
+
+            'fecha_salida' => [
+                'required',
+                'date',
+                'after_or_equal:fecha_entrada'
+            ],
+
+            'notas' => [
+                'nullable',
+                'string'
+            ],
+
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        $start = Carbon::parse(
+            $data['fecha_entrada']
+        )->toDateString();
+
+        $end = Carbon::parse(
+            $data['fecha_salida']
+        )->toDateString();
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDAR DISPONIBILIDAD
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $this->reservationOverlaps(
+                $data['room_id'],
+                $start,
+                $end
+            )
+        ) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'La habitación ya está ocupada.'
+            ], 409);
+
         }
 
-        $start = Carbon::parse($data['fecha_entrada'])->toDateString();
-        $end = Carbon::parse($data['fecha_salida'])->toDateString();
+        /*
+        |--------------------------------------------------------------------------
+        | CREAR HUÉSPED
+        |--------------------------------------------------------------------------
+        */
 
-        if (!empty($data['room_id'])) {
-            if ($this->reservationOverlaps($data['room_id'], $start, $end)) {
-                return response()->json(['success' => false, 'message' => 'La habitación está ocupada en esas fechas.'], 409);
-            }
-        }
+        $guest = Huesped::firstOrCreate(
 
-        $guest = Huesped::firstOrCreate(['name' => $data['guest_name']]);
+            [
+                'email' => auth()->user()->email
+            ],
+
+            [
+                'name' => $data['guest_name']
+            ]
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CREAR RESERVACIÓN
+        |--------------------------------------------------------------------------
+        */
 
         $reservation = Reservacion::create([
-            'hotel_id' => null,
-            'room_id' => $data['room_id'] ?? null,
+
+            'hotel_id' => 1,
+
+            'room_id' => $data['room_id'],
+
             'guest_id' => $guest->id,
+
             'fecha_entrada' => $start,
+
             'fecha_salida' => $end,
+
             'total' => 0,
+
             'status' => 'booked',
+
             'notas' => $data['notas'] ?? null,
+
         ]);
 
-        return response()->json(['success' => true, 'reservation' => $reservation]);
-    }
+        /*
+        |--------------------------------------------------------------------------
+        | CREAR PAGO AUTOMÁTICO
+        |--------------------------------------------------------------------------
+        */
 
-    public function update(Request $request, Reservacion $reservation)
-    {
-        $data = $request->only(['room_id', 'fecha_entrada', 'fecha_salida', 'status', 'notas']);
+        $reservation->payments()->create([
 
-        $validator = Validator::make($data, [
-            'room_id' => ['nullable', 'exists:habitaciones,id'],
-            'fecha_entrada' => ['sometimes', 'required', 'date'],
-            'fecha_salida' => ['sometimes', 'required', 'date', 'after_or_equal:fecha_entrada'],
-            'status' => ['sometimes', Rule::in(['booked', 'checked_in', 'checked_out', 'cancelled'])],
-            'notas' => ['nullable', 'string'],
+            'user_id' => auth()->id(),
+
+            'monto' => 0,
+
+            'metodo' => 'pendiente',
+
+            'nombre_pagador' => auth()->user()->name,
+
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        /*
+        |--------------------------------------------------------------------------
+        | CAMBIAR ESTADO HABITACIÓN
+        |--------------------------------------------------------------------------
+        */
+
+        if($reservation->room){
+
+            $reservation->room->update([
+
+                'status' => 'ocupada'
+
+            ]);
+
         }
 
-        $start = isset($data['fecha_entrada']) ? Carbon::parse($data['fecha_entrada'])->toDateString() : $reservation->checkin_at;
-        $end = isset($data['fecha_salida']) ? Carbon::parse($data['fecha_salida'])->toDateString() : $reservation->checkout_at;
-        $roomId = $data['room_id'] ?? $reservation->room_id;
+        return response()->json([
 
-        if (!empty($roomId)) {
-            if ($this->reservationOverlaps($roomId, $start, $end, $reservation->id)) {
-                return response()->json(['success' => false, 'message' => 'Solapamiento con otra reserva.'], 409);
-            }
-        }
+            'success' => true,
 
-        $reservation->update(array_filter([
-            'room_id' => $roomId,
-            'fecha_entrada' => $start,
-            'fecha_salida' => $end,
-            'status' => $data['status'] ?? $reservation->status,
-            'notas' => $data['notas'] ?? $reservation->notas,
-        ]));
+            'message' => 'Reservación creada correctamente',
 
-        return response()->json(['success' => true, 'reservation' => $reservation]);
+            'reservation' => $reservation
+
+        ]);
     }
 
-    public function destroy(Reservacion $reservation)
-    {
-        $reservation->delete();
-        return response()->json(['success' => true]);
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | MOSTRAR RESERVA
+    |--------------------------------------------------------------------------
+    */
 
-    /**
-     * Mostrar detalle de una reserva
-     */
     public function show(Reservacion $reservation)
     {
-        // Load the relations used in the view
-        $reservation->load(['room', 'guest', 'payments']);
 
-        return view('reservaciones.mostrar', compact('reservation'));
+        $reservation->load([
+            'room',
+            'guest',
+            'payments.user'
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | CLIENTE SOLO VE SUS RESERVAS
+        |--------------------------------------------------------------------------
+        */
+
+        if(auth()->user()->role === 'cliente'){
+
+            $allowed = false;
+
+            if(
+                $reservation->payments()
+                    ->where(
+                        'user_id',
+                        auth()->id()
+                    )
+                    ->exists()
+            ){
+                $allowed = true;
+            }
+
+            if(
+                $reservation->guest &&
+                $reservation->guest->email === auth()->user()->email
+            ){
+                $allowed = true;
+            }
+
+            if(!$allowed){
+
+                abort(403);
+
+            }
+
+        }
+
+        return view(
+            'reservaciones.mostrar',
+            compact('reservation')
+        );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | EDITAR
+    |--------------------------------------------------------------------------
+    */
 
     public function edit(Reservacion $reservation)
     {
-        $reservation->load(['room', 'guest']);
-        return view('reservaciones.editar', compact('reservation'));
+
+        if(auth()->user()->role !== 'admin'){
+
+            abort(403);
+
+        }
+
+        $reservation->load([
+            'room',
+            'guest'
+        ]);
+
+        return view(
+            'reservaciones.editar',
+            compact('reservation')
+        );
     }
 
-    protected function reservationOverlaps(int $roomId, string $start, string $end, ?int $excludeId = null): bool
+    /*
+    |--------------------------------------------------------------------------
+    | ELIMINAR
+    |--------------------------------------------------------------------------
+    */
+
+    public function destroy(Reservacion $reservation)
     {
-        $q = Reservacion::where('room_id', $roomId)->where('status', '!=', 'cancelled');
-        if ($excludeId) $q->where('id', '!=', $excludeId);
 
-        $exists = $q->where(function($sub) use ($start, $end) {
-            $sub->where('fecha_entrada', '<=', $end)
-                ->where('fecha_salida', '>=', $start);
-        })->exists();
+        if(auth()->user()->role !== 'admin'){
 
-        return $exists;
+            abort(403);
+
+        }
+
+        if($reservation->room){
+
+            $reservation->room->update([
+
+                'status' => 'disponible'
+
+            ]);
+
+        }
+
+        $reservation->delete();
+
+        return response()->json([
+
+            'success' => true
+
+        ]);
     }
 
-    // Panel administrativo de reservas
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDAR SOLAPAMIENTO
+    |--------------------------------------------------------------------------
+    */
+
+    protected function reservationOverlaps(
+        int $roomId,
+        string $start,
+        string $end,
+        ?int $excludeId = null
+    ): bool
+    {
+
+        $q = Reservacion::where(
+                'room_id',
+                $roomId
+            )
+            ->where(
+                'status',
+                '!=',
+                'cancelled'
+            );
+
+        if ($excludeId){
+
+            $q->where(
+                'id',
+                '!=',
+                $excludeId
+            );
+
+        }
+
+        return $q->where(function($sub)
+        use ($start, $end){
+
+            $sub->where(
+                    'fecha_entrada',
+                    '<=',
+                    $end
+                )
+
+                ->where(
+                    'fecha_salida',
+                    '>=',
+                    $start
+                );
+
+        })->exists();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PANEL GESTIÓN
+    |--------------------------------------------------------------------------
+    */
+
     public function management(Request $request)
     {
-        $query = Reservacion::with(['room', 'guest']);
 
-        // Filtrar por estado
-        if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
-        }
+        $query = Reservacion::with([
+            'room',
+            'guest',
+            'payments.user'
+        ]);
 
-        // Filtrar por fecha
-        if ($request->has('date_from') && $request->date_from) {
-            $query->where('fecha_entrada', '>=', $request->date_from);
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | CLIENTE SOLO VE SUS RESERVAS
+        |--------------------------------------------------------------------------
+        */
 
-        if ($request->has('date_to') && $request->date_to) {
-            $query->where('fecha_salida', '<=', $request->date_to);
-        }
+        if(auth()->user()->role === 'cliente'){
 
-        // Filtrar por huésped
-        if ($request->has('guest') && $request->guest) {
-            $query->whereHas('guest', function($q) {
-                $q->where('name', 'like', '%' . request('guest') . '%');
+            $query->where(function($query){
+
+                $query->whereHas('payments', function($q){
+
+                    $q->where(
+                        'user_id',
+                        auth()->id()
+                    );
+
+                })
+
+                ->orWhereHas('guest', function($q){
+
+                    $q->where(
+                        'email',
+                        auth()->user()->email
+                    );
+
+                });
+
             });
+
         }
 
-        // Filtrar por habitación
-        if ($request->has('room_id') && $request->room_id) {
-            $query->where('room_id', $request->room_id);
-        }
+        $reservations = $query
+            ->orderBy(
+                'fecha_entrada',
+                'desc'
+            )
+            ->paginate(15);
 
-        $reservations = $query->orderBy('fecha_entrada', 'desc')->paginate(15);
-        $rooms = Habitacion::orderBy('numero')->get();
+        /*
+        |--------------------------------------------------------------------------
+        | HABITACIONES DISPONIBLES
+        |--------------------------------------------------------------------------
+        */
 
-        return view('reservaciones.gestion', compact('reservations', 'rooms'));
+        $rooms = Habitacion::whereRaw(
+                'LOWER(status) = ?',
+                ['disponible']
+            )
+            ->orderBy('numero')
+            ->get();
+
+        return view(
+            'reservaciones.gestion',
+            compact(
+                'reservations',
+                'rooms'
+            )
+        );
     }
 }

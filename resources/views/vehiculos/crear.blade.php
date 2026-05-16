@@ -1,116 +1,253 @@
 @extends('layouts.app')
-
-@section('title', 'Registrar Vehículo')
+@section('title','Registrar Vehículo')
 
 @section('content')
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-7">
-            <div class="card shadow">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-car-plus"></i> Registrar Nuevo Vehículo
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('vehiculos.store') }}" method="POST">
-                        @csrf
 
-                        <!-- Placa -->
-                        <div class="mb-3">
-                            <label for="placa" class="form-label">Placa del Vehículo <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('placa') is-invalid @enderror" 
-                                   id="placa" name="placa" placeholder="ABC-123" 
-                                   value="{{ old('placa') }}" required>
-                            @error('placa')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+<style>
 
-                        <!-- Marca -->
-                        <div class="mb-3">
-                            <label for="marca" class="form-label">Marca</label>
-                            <input type="text" class="form-control @error('marca') is-invalid @enderror" 
-                                   id="marca" name="marca" placeholder="Toyota, Honda, etc." 
-                                   value="{{ old('marca') }}">
-                            @error('marca')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+:root{
+    --primary:#b23a3a;
+    --primary-light:#ff6b6b;
+    --card:#ffffff;
+    --border:#ececec;
+}
 
-                        <!-- Modelo -->
-                        <div class="mb-3">
-                            <label for="modelo" class="form-label">Modelo</label>
-                            <input type="text" class="form-control @error('modelo') is-invalid @enderror" 
-                                   id="modelo" name="modelo" placeholder="Camry, Civic, etc." 
-                                   value="{{ old('modelo') }}">
-                            @error('modelo')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+.main-card{
+    background:var(--card);
+    border-radius:22px;
+    padding:30px;
+    box-shadow:0 10px 35px rgba(0,0,0,0.06);
+}
 
-                        <!-- Color -->
-                        <div class="mb-3">
-                            <label for="color" class="form-label">Color</label>
-                            <input type="color" class="form-control form-control-color @error('color') is-invalid @enderror" 
-                                   id="color" name="color" value="{{ old('color', '#000000') }}">
-                            @error('color')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+.page-title{
+    font-size:28px;
+    font-weight:700;
+    margin-bottom:25px;
+}
 
-                        <!-- Reservación -->
-                        <div class="mb-3">
-                            <label for="reservation_id" class="form-label">Reservación (Opcional)</label>
-                            <select class="form-control @error('reservation_id') is-invalid @enderror" 
-                                    id="reservation_id" name="reservation_id">
-                                <option value="">-- Seleccionar Reservación --</option>
-                                @foreach($reservations as $reservation)
-                                    <option value="{{ $reservation->id }}" 
-                                            {{ old('reservation_id') == $reservation->id ? 'selected' : '' }}>
-                                        {{ $reservation->guest->name ?? 'N/A' }} ({{ $reservation->room->number ?? 'N/A' }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('reservation_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+}
 
-                        <!-- Lugar de Estacionamiento -->
-                        <div class="mb-3">
-                            <label for="lugar_estacionamiento" class="form-label">Lugar de Estacionamiento</label>
-                            <input type="text" class="form-control @error('lugar_estacionamiento') is-invalid @enderror" 
-                                   id="lugar_estacionamiento" name="lugar_estacionamiento" placeholder="A-01, B-05, etc." 
-                                   value="{{ old('lugar_estacionamiento') }}">
-                            @error('lugar_estacionamiento')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+.form-group label{
+    font-weight:600;
+    margin-bottom:8px;
+    display:block;
+}
 
-                        <!-- Notas -->
-                        <div class="mb-3">
-                            <label for="notas" class="form-label">Notas</label>
-                            <textarea class="form-control @error('notas') is-invalid @enderror" 
-                                      id="notas" name="notas" rows="3" placeholder="Observaciones adicionales...">{{ old('notas') }}</textarea>
-                            @error('notas')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+.form-control,
+.form-select{
+    height:48px;
+    border-radius:12px;
+    border:1px solid var(--border);
+}
 
-                        <!-- Botones -->
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-save"></i> Registrar Vehículo
-                            </button>
-                            <a href="{{ route('vehiculos.index') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancelar
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+textarea.form-control{
+    height:auto;
+}
+
+.btn-modern{
+    border:none;
+    border-radius:12px;
+    padding:12px 22px;
+    font-weight:600;
+}
+
+.btn-primary-modern{
+    background:linear-gradient(90deg,var(--primary),var(--primary-light));
+    color:#fff;
+}
+
+</style>
+
+<div class="page-title">
+    🚗 Registrar Vehículo
 </div>
+
+<div class="main-card">
+
+    @if($errors->any())
+
+        <div class="alert alert-danger mb-4">
+
+            <ul class="mb-0">
+
+                @foreach($errors->all() as $error)
+
+                    <li>{{ $error }}</li>
+
+                @endforeach
+
+            </ul>
+
+        </div>
+
+    @endif
+
+    <form action="{{ route('vehiculos.store') }}" method="POST">
+
+        @csrf
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <label>Placa</label>
+
+                <input
+                    type="text"
+                    name="placa"
+                    class="form-control"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Marca</label>
+
+                <input
+                    type="text"
+                    name="marca"
+                    class="form-control"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Modelo</label>
+
+                <input
+                    type="text"
+                    name="modelo"
+                    class="form-control"
+                    required
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Color</label>
+
+                <input
+                    type="color"
+                    name="color"
+                    class="form-control form-control-color"
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Tipo</label>
+
+                <select name="tipo" class="form-select">
+
+                    @foreach($tipos as $key => $value)
+
+                        <option value="{{ $key }}">
+                            {{ $value }}
+                        </option>
+
+                    @endforeach
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Lugar Estacionamiento</label>
+
+                <input
+                    type="text"
+                    name="lugar_estacionamiento"
+                    class="form-control"
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Tarifa por hora</label>
+
+                <input
+                    type="number"
+                    step="0.01"
+                    name="tarifa_por_hora"
+                    class="form-control"
+                    value="30"
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Reservación</label>
+
+                <select name="reservation_id" class="form-select">
+
+                    <option value="">
+                        Sin reservación
+                    </option>
+
+                    @foreach($reservaciones as $r)
+
+                        <option value="{{ $r->id }}">
+
+                            #{{ $r->id }}
+                            -
+                            {{ $r->guest->name ?? 'Sin huésped' }}
+
+                        </option>
+
+                    @endforeach
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <div class="mt-4">
+
+            <label>Notas</label>
+
+            <textarea
+                name="notas"
+                class="form-control"
+                rows="4"
+            ></textarea>
+
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+
+            <button class="btn-modern btn-primary-modern">
+
+                Guardar Vehículo
+
+            </button>
+
+            <a
+                href="{{ route('vehiculos.index') }}"
+                class="btn btn-light"
+            >
+
+                Cancelar
+
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
 @endsection

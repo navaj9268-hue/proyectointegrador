@@ -3,247 +3,431 @@
 
 @section('content')
 
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <style>
-  :root{
-    --r-red: #b23a3a;
-    --soft-red: #fff4f4;
-    --muted: #6c6c6c;
-    --card-shadow: 0 10px 30px rgba(178,58,58,0.06);
-  }
+:root{
+    --red:#b23a3a;
+    --red-dark:#8c2c2c;
+    --red-lite:#fff1f1;
+    --muted:#7a6868;
+    --radius:18px;
+}
 
-  /* Container */
-  .home-container { max-width:1200px; margin:0 auto; padding: 20px 16px; }
+body{
+    font-family:'DM Sans',sans-serif;
+    background:#faf7f7;
+}
 
-  /* HERO */
-  .hero {
+.dashboard-container{
+    max-width:1200px;
+    margin:auto;
+    padding:25px;
+}
+
+/* ================= CLIENTE ================= */
+
+.client-welcome{
+    background:linear-gradient(135deg,#8c2c2c,#d45e5e);
+    border-radius:25px;
+    padding:70px 40px;
+    text-align:center;
+    color:white;
+    box-shadow:0 15px 40px rgba(178,58,58,.18);
+}
+
+.client-welcome img{
+    width:110px;
+    height:110px;
+    object-fit:contain;
+    border-radius:20px;
+    background:rgba(255,255,255,.15);
+    padding:15px;
+    margin-bottom:25px;
+}
+
+.client-welcome h1{
+    font-size:3rem;
+    font-weight:800;
+    margin-bottom:15px;
+}
+
+.client-welcome p{
+    font-size:1.1rem;
+    opacity:.92;
+    margin-bottom:35px;
+}
+
+.client-actions{
     display:flex;
-    gap:18px;
-    align-items:center;
-    background: linear-gradient(90deg, rgba(178,58,58,0.04), rgba(255,242,242,0.02));
-    padding:20px;
-    border-radius: 14px;
-    box-shadow: var(--card-shadow);
-    margin-bottom:20px;
-    flex-wrap:wrap;
-  }
-  .hero .logo {
-    width:96px;
-    height:96px;
-    min-width:96px;
-    border-radius:12px;
-    background: #fff;
-    display:flex;
-    align-items:center;
     justify-content:center;
-    overflow:hidden;
-    border: 1px solid rgba(178,58,58,0.06);
-  }
-  .hero .logo img { width:86px; height:86px; object-fit:contain; }
+    gap:15px;
+    flex-wrap:wrap;
+}
 
-  .hero .hero-main { flex:1 1 320px; min-width:220px; }
-  .hero h2 { margin:0 0 6px 0; color:var(--r-red); font-weight:800; font-size:1.45rem; }
-  .hero p { margin:0; color:var(--muted); }
+.client-btn{
+    padding:14px 28px;
+    border-radius:14px;
+    text-decoration:none;
+    font-weight:700;
+    transition:.2s;
+}
 
-  .hero .hero-actions { display:flex; gap:8px; align-items:center; margin-left:auto; flex: 0 0 auto; }
+.client-btn-primary{
+    background:white;
+    color:var(--red);
+}
 
-  /* STATS (separate row, not inside hero) */
-  .stats-row { display:flex; gap:12px; margin-top:14px; }
-  .stat {
-    flex:1;
-    border-radius:10px;
-    padding:14px;
-    background:#fff;
-    border:1px solid rgba(178,58,58,0.04);
-    box-shadow: 0 6px 18px rgba(178,58,58,0.03);
+.client-btn-outline{
+    border:2px solid rgba(255,255,255,.35);
+    color:white;
+}
+
+.client-btn:hover{
+    transform:translateY(-3px);
+    color:inherit;
+}
+
+/* ================= ADMIN ================= */
+
+.hero-banner{
+    background:linear-gradient(135deg,#8c2c2c,#d45e5e);
+    border-radius:22px;
+    padding:35px;
+    color:white;
+    margin-bottom:25px;
+}
+
+.hero-content{
     display:flex;
-    flex-direction:column;
-    gap:6px;
-    align-items:flex-start;
-  }
-  .stat .num { font-size:1.4rem; font-weight:800; color:var(--r-red); }
-  .stat .label { color:var(--muted); font-size:.9rem; }
-
-  /* GRID: left info / right quick cards */
-  .grid { display:grid; grid-template-columns: 320px 1fr; gap:16px; margin-top:18px; align-items:start; }
-  .hotel-card {
-    border-radius: 12px;
-    padding: 18px;
-    background: #fff;
-    border: 1px solid rgba(178,58,58,0.04);
-    box-shadow: 0 8px 20px rgba(37,6,6,0.04);
-  }
-  .quick-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:12px; }
-
-  .quick {
-    background: linear-gradient(180deg,#fffaf9,#fff2f2);
-    border-radius:12px;
-    padding:16px;
-    border:1px solid rgba(178,58,58,0.04);
-    display:flex;
-    gap:12px;
     align-items:center;
-    transition: transform .14s ease, box-shadow .14s ease;
-  }
-  .quick:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(178,58,58,0.06); text-decoration:none; }
-  .quick .icon {
-    width:56px; height:56px; border-radius:10px; display:flex; align-items:center; justify-content:center;
-    font-size:1.4rem; background: rgba(178,58,58,0.08); color:var(--r-red);
-  }
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:20px;
+}
 
-  /* Recent activity */
-  .recent { margin-top:16px; }
+.hero-left{
+    display:flex;
+    align-items:center;
+    gap:20px;
+}
 
-  /* Empty / spacing helpers */
-  .muted { color:var(--muted); }
+.hero-logo{
+    width:90px;
+    height:90px;
+    border-radius:18px;
+    background:rgba(255,255,255,.15);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
 
-  /* RESPONSIVE: stack nicely */
-  @media (max-width: 991px) {
-    .grid { grid-template-columns: 1fr; }
-    .hero { padding:16px; }
-    .hero .hero-actions { width:100%; justify-content:flex-start; margin-top:10px; }
-    .stats-row { flex-wrap:wrap; }
-    .stat { flex: 1 1 45%; }
-  }
-  @media (max-width: 575px) {
-    .stat { flex: 1 1 100%; }
-    .hero .logo { width:78px; height:78px; min-width:78px; }
-  }
+.hero-logo img{
+    width:70px;
+}
+
+.hero-title{
+    font-size:2rem;
+    font-weight:800;
+    margin-bottom:8px;
+}
+
+.hero-buttons{
+    display:flex;
+    gap:10px;
+}
+
+.hero-btn{
+    padding:12px 22px;
+    border-radius:12px;
+    text-decoration:none;
+    font-weight:700;
+}
+
+.hero-btn-primary{
+    background:white;
+    color:var(--red);
+}
+
+.hero-btn-outline{
+    border:1px solid rgba(255,255,255,.35);
+    color:white;
+}
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:18px;
+    margin-bottom:25px;
+}
+
+.stat-card{
+    background:white;
+    border-radius:18px;
+    padding:25px;
+    box-shadow:0 5px 20px rgba(0,0,0,.04);
+}
+
+.stat-number{
+    font-size:2rem;
+    font-weight:800;
+    color:var(--red);
+}
+
+.quick-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+}
+
+.quick-card{
+    background:white;
+    border-radius:18px;
+    padding:22px;
+    text-decoration:none;
+    color:#333;
+    box-shadow:0 5px 20px rgba(0,0,0,.04);
+    transition:.2s;
+}
+
+.quick-card:hover{
+    transform:translateY(-4px);
+    color:#333;
+}
+
+.quick-card h5{
+    color:var(--red);
+    font-weight:700;
+}
+
+@media(max-width:768px){
+
+    .stats-grid{
+        grid-template-columns:1fr;
+    }
+
+    .quick-grid{
+        grid-template-columns:1fr;
+    }
+
+    .client-welcome h1{
+        font-size:2rem;
+    }
+}
 </style>
 
-<div class="home-container">
+<div class="dashboard-container">
 
-  <!-- HERO -->
-  <div class="hero">
-    <div class="logo">
-      {{-- Cambia la ruta si tu logo está en public/logo.png o public/img/logo.png --}}
-      <img src="{{ asset('img/logo.png') }}" alt="Logo" onerror="this.src='{{ asset('logo.png') }}'">
+{{-- =========================================================
+    CLIENTE
+========================================================= --}}
+@if(auth()->user()->role === 'cliente')
+
+<div class="client-welcome">
+
+    <img src="{{ asset('img/logo.png') }}" alt="Hotel">
+
+    <h1>
+        👋 Bienvenido,
+        {{ auth()->user()->name }}
+    </h1>
+
+    <p>
+        Gracias por hospedarte en
+        <strong>Hotel Muñoz</strong>.
+        Desde aquí puedes consultar habitaciones,
+        reservaciones y pagos.
+    </p>
+
+    <div class="client-actions">
+
+        <a href="{{ route('catalogo.index') }}"
+           class="client-btn client-btn-primary">
+
+            🛏️ Ver habitaciones
+
+        </a>
+
+        <a href="{{ route('reservaciones.calendar') }}"
+           class="client-btn client-btn-outline">
+
+            📆 Mis reservaciones
+
+        </a>
+
+        <a href="{{ route('pagos.index') }}"
+           class="client-btn client-btn-outline">
+
+            💳 Mis pagos
+
+        </a>
+
     </div>
 
-    <div class="hero-main">
-      <h2>¡Bienvenido, {{ auth()->user()->name ?? 'Admin' }}! 👋</h2>
-      <p>Panel de control del <strong>{{ 'Hotel Muñoz' }}</strong>. Gestiona habitaciones, inventario y usuarios desde aquí.</p>
+</div>
 
-      <!-- Stats separadas (no dentro del hero visualmente) -->
-      <div class="stats-row">
-        <div class="stat">
-          <div class="num">
-            {{ class_exists(\App\Models\Room::class) && \Illuminate\Support\Facades\Schema::hasTable('rooms') ? \App\Models\Room::count() : 0 }}
-          </div>
-          <div class="label">Habitaciones</div>
+{{-- =========================================================
+    ADMIN
+========================================================= --}}
+@else
+
+<div class="hero-banner">
+
+    <div class="hero-content">
+
+        <div class="hero-left">
+
+            <div class="hero-logo">
+                <img src="{{ asset('img/logo.png') }}">
+            </div>
+
+            <div>
+
+                <small style="opacity:.8">
+                    PANEL DE ADMINISTRACIÓN
+                </small>
+
+                <div class="hero-title">
+                    ¡Bienvenido,
+                    {{ auth()->user()->name }}!
+                </div>
+
+                <div>
+                    Gestiona habitaciones,
+                    inventario y usuarios.
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="stat">
-          <div class="num">
-            {{ class_exists(\App\Models\Room::class) && \Illuminate\Support\Facades\Schema::hasTable('rooms') ? \App\Models\Room::where('status','available')->count() : 0 }}
-          </div>
-          <div class="label">Disponibles</div>
+        <div class="hero-buttons">
+
+            <a href="{{ route('habitaciones.create') }}"
+               class="hero-btn hero-btn-primary">
+
+                ➕ Crear habitación
+
+            </a>
+
+            <a href="{{ route('inventarios.index') }}"
+               class="hero-btn hero-btn-outline">
+
+                📦 Inventario
+
+            </a>
+
         </div>
 
-        <div class="stat">
-          <div class="num">
-            {{ class_exists(\App\Models\Inventory::class) && \Illuminate\Support\Facades\Schema::hasTable('inventories') ? \App\Models\Inventory::count() : 0 }}
-          </div>
-          <div class="label">Items en inventario</div>
-        </div>
-      </div>
     </div>
 
-    <div class="hero-actions">
-      <a href="{{ route('habitaciones.create') }}" class="btn btn-sm" style="background:linear-gradient(90deg,#b23a3a,#ff6b6b); color:#fff; border:none;">➕ Crear habitación</a>
-      <a href="{{ route('inventarios.index') }}" class="btn btn-sm btn-outline-secondary">📦 Inventario</a>
+</div>
 
-      {{-- Botones de reportes PDF integrados --}}
-      <div class="btn-group ms-2" role="group" aria-label="Reportes">
-        <a href="{{ route('reportes.habitaciones') }}" class="btn btn-sm btn-outline-secondary" title="PDF Habitaciones">📄 Habitaciones</a>
-        <a href="{{ route('reportes.inventarios') }}" class="btn btn-sm btn-outline-secondary" title="PDF Inventario">📄 Inventario</a>
-        <a href="{{ route('reportes.usuarios') }}" class="btn btn-sm btn-outline-secondary" title="PDF Usuarios">📄 Usuarios</a>
-        <a href="{{ route('reportes.general') }}" class="btn btn-sm" style="background:linear-gradient(90deg,#b23a3a,#ff6b6b); color:#fff;" title="Reporte general">📊 General</a>
-      </div>
-    </div>
-  </div>
+<div class="stats-grid">
 
-  <!-- GRID: left info / right quick actions -->
-  <div class="grid">
-    <!-- LEFT -->
-    <div>
-      <div class="hotel-card">
-        <h5 style="color:var(--r-red); margin-bottom:8px;">{{ $hotel->name ?? 'Hotel Muñoz' }}</h5>
+    <div class="stat-card">
 
-        <div class="mb-2 muted">
-          <div><strong>Dirección:</strong> {{  '....' }}</div>
-          <div><strong>Teléfono:</strong> {{  '+52 55 1234 5678' }}</div>
-          <div><strong>Email:</strong> {{ 'hotelMuñoz@gmail.com' }}</div>
+        <div class="stat-number">
+            {{ \App\Models\Habitacion::count() }}
         </div>
 
-        <p class="muted small mb-3">
-          {{ \Illuminate\Support\Str::limit( 'Contamos con informacion   sobre servicios, ubicación y comodidades.', 200) }}
+        <div>Total habitaciones</div>
+
+    </div>
+
+    <div class="stat-card">
+
+        <div class="stat-number">
+            {{ \App\Models\Habitacion::where('status','disponible')->count() }}
+        </div>
+
+        <div>Disponibles</div>
+
+    </div>
+
+    <div class="stat-card">
+
+        <div class="stat-number">
+            {{ \App\Models\Inventario::count() }}
+        </div>
+
+        <div>Inventario</div>
+
+    </div>
+
+</div>
+
+<div class="quick-grid">
+
+    <a href="{{ route('habitaciones.index') }}"
+       class="quick-card">
+
+        <h5>🛏️ Habitaciones</h5>
+
+        <p>
+            Crear, editar y administrar habitaciones.
         </p>
 
-        <div style="display:flex; gap:8px;">
-        
-          <a href="{{ route('usuarios.index') }}" class="btn btn-sm" style="background:linear-gradient(90deg,#b23a3a,#ff6b6b); color:#fff; border:none;">👥 Usuarios</a>
-        </div>
+    </a>
 
-        <div class="recent">
-          <h6 style="margin-top:16px; margin-bottom:8px; color:var(--r-red);">Actividad reciente</h6>
-          <div class="list-group">
-            <div class="list-group-item d-flex justify-content-between align-items-start">
-              <div>
-                <strong>Reserva nueva</strong>
-                <div class="small muted">Usuario: juan.perez — Habitación 101</div>
-              </div>
-              <small class="muted">Hace 2h</small>
-            </div>
+    <a href="{{ route('inventarios.index') }}"
+       class="quick-card">
 
-            <div class="list-group-item d-flex justify-content-between align-items-start">
-              <div>
-                <strong>Inventario actualizado</strong>
-                <div class="small muted">Se añadieron 10 toallas al almacén</div>
-              </div>
-              <small class="muted">Hace 1d</small>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        <h5>📦 Inventario</h5>
 
-    <!-- RIGHT -->
-    <div>
-      <div class="quick-grid">
-        <a href="{{ route('habitaciones.index') }}" class="quick text-decoration-none">
-          <div class="icon">🛏️</div>
-          <div>
-            <h5 style="margin:0; color:var(--r-red);">Habitaciones</h5>
-            <p class="muted small mb-0">Crear, editar y ver estado de habitaciones.</p>
-          </div>
-        </a>
+        <p>
+            Administrar artículos e inventario.
+        </p>
 
-        <a href="{{ route('inventarios.index') }}" class="quick text-decoration-none">
-          <div class="icon">📦</div>
-          <div>
-            <h5 style="margin:0; color:var(--r-red);">Inventario</h5>
-            <p class="muted small mb-0">Controla artículos y stock.</p>
-          </div>
-        </a>
+    </a>
 
-        <a href="{{ route('usuarios.index') }}" class="quick text-decoration-none">
-          <div class="icon">👥</div>
-          <div>
-            <h5 style="margin:0; color:var(--r-red);">Usuarios</h5>
-            <p class="muted small mb-0">Gestión de usuarios del sistema.</p>
-          </div>
-        </a>
+    <a href="{{ route('usuarios.index') }}"
+       class="quick-card">
 
-        <a href="{{ route('habitaciones.create') }}" class="quick text-decoration-none">
-          <div class="icon">➕</div>
-          <div>
-            <h5 style="margin:0; color:var(--r-red);">Nueva habitación</h5>
-            <p class="muted small mb-0">Crear habitación desde aquí.</p>
-          </div>
-        </a>
-      </div>
-    </div>
-  </div>
+        <h5>👥 Usuarios</h5>
+
+        <p>
+            Gestión de usuarios y permisos.
+        </p>
+
+    </a>
+
+    <a href="{{ route('reservaciones.calendar') }}"
+       class="quick-card">
+
+        <h5>📆 Calendario</h5>
+
+        <p>
+            Ver reservaciones del hotel.
+        </p>
+
+    </a>
+
+    <a href="{{ route('pagos.index') }}"
+       class="quick-card">
+
+        <h5>💳 Pagos</h5>
+
+        <p>
+            Historial y control de pagos.
+        </p>
+
+    </a>
+
+    <a href="{{ route('vehiculos.index') }}"
+       class="quick-card">
+
+        <h5>🚗 Vehículos</h5>
+
+        <p>
+            Control de estacionamiento.
+        </p>
+
+    </a>
+
+</div>
+
+@endif
 
 </div>
 
